@@ -1,0 +1,1617 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>个人中心 - 智能交通流预测系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
+    <style>
+        /* 暗色主题（默认） */
+        body { 
+            background: #0f172a; 
+            color: #e2e8f0; 
+            min-height: 100vh; 
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+        .navbar { background:#0b1222; border-bottom:1px solid rgba(255,255,255,.08); transition: background 0.3s ease; }
+        
+        /* 亮色主题 */
+        body.light-theme { background: #f8fafc; color: #1e293b; }
+        body.light-theme .navbar { background:#ffffff; border-bottom:1px solid rgba(0,0,0,.08); }
+        body.light-theme .profile-card { background:#ffffff; border:1px solid rgba(0,0,0,.08); }
+        body.light-theme .profile-card-header { color:#1e293b; border-bottom:1px solid rgba(0,0,0,.06); }
+        body.light-theme .info-label { color:#64748b; }
+        body.light-theme .info-value { color:#1e293b; }
+        body.light-theme .form-label { color:#475569; }
+        body.light-theme .form-control, body.light-theme .form-select { 
+            background:#f1f5f9; border:1px solid rgba(0,0,0,.12); color:#1e293b; 
+        }
+        body.light-theme .stat-box { background: rgba(59,130,246,.05); }
+        body.light-theme .stat-label { color:#64748b; }
+        body.light-theme .navbar-brand,
+        body.light-theme .btn-outline-light { color:#1e293b !important; border-color:#1e293b !important; }
+        body.light-theme .btn-outline-light:hover { background:rgba(0,0,0,.05); }
+        body.light-theme .text-muted { color:#64748b !important; }
+        body.light-theme .modal-content { background:#ffffff; color:#1e293b; }
+        body.light-theme .modal-header, body.light-theme .modal-footer { 
+            border-color: rgba(0,0,0,.1) !important; 
+        }
+        
+        /* 主题切换按钮 */
+        .theme-toggle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+            border: 2px solid rgba(255,255,255,0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-right: 12px;
+        }
+        
+        .theme-toggle:hover {
+            background: rgba(255,255,255,0.2);
+            transform: scale(1.1);
+            box-shadow: 0 0 15px rgba(255,255,255,0.3);
+        }
+        
+        .theme-toggle i {
+            color: #fbbf24;
+            font-size: 18px;
+            transition: all 0.3s ease;
+        }
+        
+        body.light-theme .theme-toggle {
+            background: rgba(0,0,0,0.05);
+            border-color: rgba(0,0,0,0.1);
+        }
+        
+        body.light-theme .theme-toggle:hover {
+            background: rgba(0,0,0,0.1);
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        }
+        
+        body.light-theme .theme-toggle i {
+            color: #1e293b;
+        }
+        
+        /* 导航按钮美化 */
+        .nav-btn {
+            padding: 8px 18px !important;
+            border-radius: 10px !important;
+            font-weight: 600 !important;
+            font-size: 14px !important;
+            transition: all 0.3s ease !important;
+            border: 2px solid transparent !important;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .nav-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            transform: translate(-50%, -50%);
+            transition: width 0.4s, height 0.4s;
+        }
+        
+        .nav-btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+        
+        .nav-btn i {
+            margin-right: 6px;
+            transition: transform 0.3s ease;
+        }
+        
+        .nav-btn:hover i {
+            transform: scale(1.15);
+        }
+        
+        .nav-btn-home {
+            background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%) !important;
+            box-shadow: 0 2px 8px rgba(236, 72, 153, 0.3);
+        }
+        
+        .nav-btn-home:hover {
+            box-shadow: 0 4px 15px rgba(236, 72, 153, 0.5);
+            transform: translateY(-2px);
+        }
+        
+        .nav-btn-input {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+        }
+        
+        .nav-btn-input:hover {
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.5);
+            transform: translateY(-2px);
+        }
+        
+        .nav-btn-history {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+        }
+        
+        .nav-btn-history:hover {
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.5);
+            transform: translateY(-2px);
+        }
+        
+        .nav-btn-outline {
+            background: rgba(255,255,255,0.05) !important;
+            border: 2px solid rgba(255,255,255,0.2) !important;
+            color: #e2e8f0 !important;
+        }
+        
+        .nav-btn-outline:hover {
+            background: rgba(255,255,255,0.1) !important;
+            border-color: rgba(255,255,255,0.4) !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255,255,255,0.15);
+        }
+        
+        body.light-theme .nav-btn-outline {
+            background: rgba(0,0,0,0.03) !important;
+            border-color: rgba(0,0,0,0.15) !important;
+            color: #1e293b !important;
+        }
+        
+        body.light-theme .nav-btn-outline:hover {
+            background: rgba(0,0,0,0.08) !important;
+            border-color: rgba(0,0,0,0.25) !important;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .container-main { max-width: 1200px; margin: 40px auto; padding: 0 20px; }
+        
+        .profile-card { 
+            background:#0b1222; 
+            border:1px solid rgba(255,255,255,.08); 
+            border-radius:12px; 
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+        
+        .profile-card-header {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(255,255,255,.06);
+        }
+        
+        .avatar-section {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+        
+        .avatar-preview {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            font-weight: 700;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .avatar-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .info-row {
+            display: flex;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255,255,255,.04);
+        }
+        
+        .info-label {
+            width: 120px;
+            color: #94a3b8;
+            flex-shrink: 0;
+        }
+        
+        .info-value {
+            flex: 1;
+            color: #e2e8f0;
+        }
+        
+        .form-label { color:#cbd5e1; font-weight: 500; }
+        .form-control, .form-select { 
+            background:#0f1a33; 
+            border:1px solid rgba(255,255,255,.12); 
+            color:#e2e8f0; 
+        }
+        .form-control:focus, .form-select:focus { 
+            border-color:#3b82f6; 
+            box-shadow: 0 0 0 .2rem rgba(59,130,246,.25);
+            background:#0f1a33; 
+            color:#e2e8f0; 
+        }
+        
+        .btn-primary { background:#2563eb; border:none; font-weight:600; }
+        .btn-primary:hover { background:#1d4ed8; }
+        .btn-outline-light:hover { background: rgba(255,255,255,.1); }
+        .btn-danger { background:#dc2626; border:none; }
+        .btn-danger:hover { background:#b91c1c; }
+        
+        .stat-box {
+            text-align: center;
+            padding: 20px;
+            background: rgba(59,130,246,.1);
+            border-radius: 8px;
+        }
+        
+        .stat-number {
+            font-size: 32px;
+            font-weight: 700;
+            color: #3b82f6;
+        }
+        
+        .stat-label {
+            color: #94a3b8;
+            margin-top: 8px;
+        }
+        
+        .user-avatar-nav {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+        
+        .user-avatar-nav:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.5);
+        }
+        
+        .user-avatar-nav img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        
+        .dropdown-menu {
+            background: linear-gradient(145deg, #0d1829 0%, #0b1222 100%);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: 12px;
+            padding: 8px;
+            margin-top: 8px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            min-width: 200px;
+        }
+        
+        .dropdown-item {
+            color: #e2e8f0;
+            padding: 10px 16px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+        }
+        
+        .dropdown-item i {
+            width: 20px;
+            margin-right: 10px;
+            transition: all 0.2s ease;
+        }
+        
+        .dropdown-item:hover {
+            transform: translateX(3px);
+        }
+        
+        /* 个人中心 - 绿色 */
+        .menu-profile i {
+            color: #22c55e;
+        }
+        
+        .menu-profile:hover {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(16, 185, 129, 0.15) 100%);
+            color: #fff;
+        }
+        
+        .menu-profile:hover i {
+            color: #4ade80;
+        }
+        
+        /* 模型配置 - 黄色 */
+        .menu-config i {
+            color: #eab308;
+        }
+        
+        .menu-config:hover {
+            background: linear-gradient(135deg, rgba(234, 179, 8, 0.15) 0%, rgba(245, 158, 11, 0.15) 100%);
+            color: #fff;
+        }
+        
+        .menu-config:hover i {
+            color: #fbbf24;
+        }
+        /* 消息中心 - 蓝色 */
+        .menu-message i {
+            color: #60a5fa;
+        }
+        
+        .menu-message:hover {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(37, 99, 235, 0.15) 100%);
+            color: #fff;
+        }
+        
+        .menu-message:hover i {
+            color: #60a5fa;
+        }
+        
+        .unread-badge {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            background: #ef4444;
+            color: white;
+            font-size: 10px;
+            padding: 2px 5px;
+            border-radius: 10px;
+            min-width: 16px;
+            text-align: center;
+        }
+        
+
+        
+        .dropdown-divider {
+            border-color: rgba(102, 126, 234, 0.2) !important;
+            margin: 8px 0;
+        }
+        
+        /* 退出登录 - 红色 */
+        .menu-logout {
+            color: #fca5a5;
+        }
+        
+        .menu-logout i {
+            color: #ef4444;
+        }
+        
+        .menu-logout:hover {
+            background: rgba(239, 68, 68, 0.15);
+            color: #fef2f2;
+        }
+        
+        .menu-logout:hover i {
+            color: #f87171;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/"><i class="fas fa-traffic-light me-2"></i>智能交通流预测系统</a>
+            <div class="d-flex gap-2 align-items-center">
+                <a href="/" class="btn btn-sm nav-btn nav-btn-outline nav-btn-home">
+                    <i class="fas fa-home"></i>首页
+                </a>
+                <a href="/input" class="btn btn-sm nav-btn nav-btn-outline nav-btn-input">
+                    <i class="fas fa-keyboard"></i>数据输入
+                </a>
+                <a href="/history?from=profile" class="btn btn-sm nav-btn nav-btn-outline nav-btn-history">
+                    <i class="fas fa-history"></i>历史数据
+                </a>
+                
+                <!-- 主题切换按钮 -->
+                <div class="theme-toggle" id="themeToggle" title="切换主题">
+                    <i class="fas fa-moon"></i>
+                </div>
+                
+                <div class="dropdown">
+                    <div class="user-avatar-nav" data-bs-toggle="dropdown" aria-expanded="false" id="navAvatar">
+                        <span id="navAvatarText">U</span>
+                    </div>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item menu-profile" href="/profile"><i class="fas fa-user me-2"></i>个人中心</a></li>
+                        <li><a class="dropdown-item menu-config" href="/model-config"><i class="fas fa-cog me-2"></i>模型配置</a></li>
+                        <li><a class="dropdown-item menu-message" href="#" id="messageCenterBtn" style="position: relative;">
+                            <i class="fas fa-bell me-2"></i>消息中心
+                            <span class="unread-badge" id="unreadBadge" style="display: none;">0</span>
+                        </a></li>
+                        <li><hr class="dropdown-divider" style="border-color: rgba(255,255,255,.1);"></li>
+                        <li><a class="dropdown-item menu-logout" href="#" id="logoutBtn"><i class="fas fa-sign-out-alt me-2"></i>退出登录</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-main">
+        <div class="text-center mb-4">
+            <h3 class="fw-bold">个人中心</h3>
+            <div class="text-muted">管理您的个人信息和账号设置</div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-8">
+                <!-- 基本信息卡片 -->
+                <div class="profile-card">
+                    <div class="profile-card-header">
+                        <i class="fas fa-user me-2"></i>基本信息
+                    </div>
+                    
+                    <div class="avatar-section mb-4">
+                        <div class="avatar-preview" id="avatarPreview">
+                            <span id="avatarText">U</span>
+                        </div>
+                        <div>
+                            <h5 id="displayUsername">用户名</h5>
+                            <p class="text-muted mb-3">更换您的头像</p>
+                            <input type="file" id="avatarInput" accept="image/*" style="display: none;">
+                            <button class="btn btn-primary btn-sm" onclick="document.getElementById('avatarInput').click()">
+                                <i class="fas fa-upload me-1"></i>上传头像
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="info-row">
+                        <div class="info-label">用户名</div>
+                        <div class="info-value" id="infoUsername">-</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">昵称</div>
+                        <div class="info-value" id="infoNickname">-</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">邮箱</div>
+                        <div class="info-value" id="infoEmail">-</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">角色</div>
+                        <div class="info-value" id="infoRole">-</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">创建时间</div>
+                        <div class="info-value" id="infoCreatedAt">-</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">登录次数</div>
+                        <div class="info-value" id="infoLoginCount">-</div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editProfileModal">
+                            <i class="fas fa-edit me-1"></i>编辑资料
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 更改密码卡片 -->
+                <div class="profile-card">
+                    <div class="profile-card-header">
+                        <i class="fas fa-lock me-2"></i>更改密码
+                    </div>
+                    
+                    <form id="changePasswordForm">
+                        <div class="mb-3">
+                            <label class="form-label" for="oldPassword">当前密码</label>
+                            <input type="password" class="form-control" id="oldPassword" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="newPassword">新密码</label>
+                            <input type="password" class="form-control" id="newPassword" required minlength="6">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="confirmPassword">确认新密码</label>
+                            <input type="password" class="form-control" id="confirmPassword" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-check me-1"></i>保存密码
+                        </button>
+                    </form>
+                </div>
+
+                <!-- 账号设置卡片 -->
+                <div class="profile-card">
+                    <div class="profile-card-header">
+                        <i class="fas fa-sliders-h me-2"></i>账号设置
+                    </div>
+                    
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" id="receiveEmail">
+                        <label class="form-check-label" for="receiveEmail">
+                            接收邮件通知
+                        </label>
+                    </div>
+                    
+                    <button class="btn btn-primary" id="saveSettingsBtn">
+                        <i class="fas fa-save me-1"></i>保存设置
+                    </button>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <!-- 统计信息卡片 -->
+                <div class="profile-card">
+                    <div class="profile-card-header">
+                        <i class="fas fa-chart-bar me-2"></i>使用统计
+                    </div>
+                    
+                    <div class="stat-box mb-3">
+                        <div class="stat-number" id="statPredictionCount">0</div>
+                        <div class="stat-label">预测次数</div>
+                    </div>
+                    
+                    <div class="stat-box">
+                        <div class="stat-number" id="statLoginCount">0</div>
+                        <div class="stat-label">登录次数</div>
+                    </div>
+                </div>
+
+                <!-- 快捷操作 -->
+                <div class="profile-card">
+                    <div class="profile-card-header">
+                        <i class="fas fa-bolt me-2"></i>快捷操作
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-outline-light" id="messageCenterBtnCard">
+                            <i class="fas fa-bell me-2"></i>消息中心
+                        </button>
+                        <a href="/model-config" class="btn btn-outline-light">
+                            <i class="fas fa-cog me-2"></i>模型配置
+                        </a>
+                        <a href="/history" class="btn btn-outline-light">
+                            <i class="fas fa-history me-2"></i>历史记录
+                        </a>
+                        <button class="btn btn-danger" id="logoutBtnCard">
+                            <i class="fas fa-sign-out-alt me-2"></i>退出登录
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 头像裁剪模态框 -->
+    <div class="modal fade" id="cropAvatarModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content" style="background: #0b1222; color: #e2e8f0;">
+                <div class="modal-header" style="border-bottom: 1px solid rgba(255,255,255,.1);">
+                    <h5 class="modal-title"><i class="fas fa-crop me-2"></i>裁剪头像</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="crop-container" style="max-height: 500px; overflow: hidden;">
+                        <img id="cropImage" style="max-width: 100%;">
+                    </div>
+                    <div class="mt-3">
+                        <div class="d-flex justify-content-center gap-2">
+                            <button type="button" class="btn btn-outline-light btn-sm" id="zoomIn" title="放大">
+                                <i class="fas fa-search-plus"></i> 放大
+                            </button>
+                            <button type="button" class="btn btn-outline-light btn-sm" id="zoomOut" title="缩小">
+                                <i class="fas fa-search-minus"></i> 缩小
+                            </button>
+                            <button type="button" class="btn btn-outline-light btn-sm" id="rotateLeft" title="向左旋转">
+                                <i class="fas fa-undo"></i> 向左
+                            </button>
+                            <button type="button" class="btn btn-outline-light btn-sm" id="rotateRight" title="向右旋转">
+                                <i class="fas fa-redo"></i> 向右
+                            </button>
+                            <button type="button" class="btn btn-outline-light btn-sm" id="reset" title="重置">
+                                <i class="fas fa-sync-alt"></i> 重置
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="border-top: 1px solid rgba(255,255,255,.1);">
+                    <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="confirmCrop">
+                        <i class="fas fa-check me-1"></i>确定上传
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 编辑资料模态框 -->
+    <div class="modal fade" id="editProfileModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content" style="background: #0b1222; color: #e2e8f0;">
+                <div class="modal-header" style="border-bottom: 1px solid rgba(255,255,255,.1);">
+                    <h5 class="modal-title">编辑个人资料</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editProfileForm">
+                        <div class="mb-3">
+                            <label class="form-label">昵称</label>
+                            <input type="text" class="form-control" id="editNickname">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">邮箱</label>
+                            <input type="email" class="form-control" id="editEmail">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer" style="border-top: 1px solid rgba(255,255,255,.1);">
+                    <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="saveProfileBtn">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+    <script>
+        // 生产环境地址
+        const API_BASE_URL = 'https://yjwkusxabeto.sealoshzh.site';  // 后端公网地址
+        
+        // 辅助函数：处理头像URL
+        function getFullAvatarUrl(avatarUrl) {
+            if (!avatarUrl) return null;
+            // 如果已经是完整URL，直接返回
+            if (avatarUrl.startsWith('http://') || avatarUrl.startsWith('https://')) {
+                return avatarUrl;
+            }
+            // 如果是相对路径，拼接后端地址
+            return API_BASE_URL + avatarUrl;
+        }
+
+        function getAuthToken(){
+            return localStorage.getItem('token') || sessionStorage.getItem('token');
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            sessionStorage.removeItem('token');
+            localStorage.removeItem('user');
+            sessionStorage.removeItem('user');
+            // 标记为主动退出登录
+            sessionStorage.setItem('manualLogout', 'true');
+            window.location.href = '/login';
+        }
+
+        async function loadUserProfile() {
+            const token = getAuthToken();
+            if (!token) {
+                window.location.href = '/login';
+                return;
+            }
+
+            try {
+                const response = await $.ajax({
+                    url: `${API_BASE_URL}/profile/info`,
+                    method: 'GET',
+                    data: { token }
+                });
+
+                if (response.success) {
+                    const user = response.data;
+                    
+                    // 【修复】更新localStorage/sessionStorage中的用户信息
+                    // 检查token存储位置，同步更新用户信息
+                    if (localStorage.getItem('token')) {
+                        localStorage.setItem('user', JSON.stringify(user));
+                    } else if (sessionStorage.getItem('token')) {
+                        sessionStorage.setItem('user', JSON.stringify(user));
+                    }
+                    
+                    // 更新头像
+                    const avatarInitial = (user.nickname || user.username || 'U')[0].toUpperCase();
+                    if (user.avatar) {
+                        const fullAvatarUrl = getFullAvatarUrl(user.avatar);
+                        $('#avatarPreview').html(`<img src="${fullAvatarUrl}" alt="Avatar">`);
+                        $('#navAvatar').html(`<img src="${fullAvatarUrl}" alt="Avatar">`);
+                    } else {
+                        $('#avatarText').text(avatarInitial);
+                        $('#navAvatarText').text(avatarInitial);
+                    }
+                    
+                    // 更新基本信息
+                    $('#displayUsername').text(user.nickname || user.username);
+                    $('#infoUsername').text(user.username);
+                    $('#infoNickname').text(user.nickname || '-');
+                    $('#infoEmail').text(user.email);
+                    $('#infoRole').text(user.role === 'admin' ? '管理员' : '普通用户');
+                    $('#infoCreatedAt').text(new Date(user.created_at).toLocaleString('zh-CN'));
+                    $('#infoLoginCount').text(user.login_count || 0);
+                    
+                    // 更新统计
+                    $('#statPredictionCount').text(user.prediction_count || 0);
+                    $('#statLoginCount').text(user.login_count || 0);
+                    
+                    // 更新设置
+                    $('#receiveEmail').prop('checked', user.receive_email);
+                    
+                    // 保存到编辑表单
+                    $('#editNickname').val(user.nickname || '');
+                    $('#editEmail').val(user.email);
+                }
+            } catch (error) {
+                console.error('加载用户信息失败:', error);
+                alert('加载用户信息失败，请重新登录');
+                logout();
+            }
+        }
+
+        // 上传头像 - 裁剪相关变量
+        let cropper = null;
+        let cropAvatarModal = null;
+        let currentImageFile = null;
+
+        // 上传头像
+        $('#avatarInput').on('change', async function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            // 验证文件类型
+            if (!file.type.startsWith('image/')) {
+                alert('请选择图片文件');
+                this.value = ''; // 清空输入
+                return;
+            }
+            
+            // 验证文件大小（10MB）
+            if (file.size > 10 * 1024 * 1024) {
+                alert('图片大小不能超过10MB');
+                this.value = ''; // 清空输入
+                return;
+            }
+            
+            // 保存文件引用
+            currentImageFile = file;
+            
+            // 读取文件并显示裁剪界面
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const imageUrl = e.target.result;
+                
+                // 如果已存在cropper实例，先销毁
+                if (cropper) {
+                    cropper.destroy();
+                    cropper = null;
+                }
+                
+                // 设置图片源
+                $('#cropImage').attr('src', imageUrl);
+                
+                // 初始化模态框
+                if (!cropAvatarModal) {
+                    cropAvatarModal = new bootstrap.Modal(document.getElementById('cropAvatarModal'));
+                }
+                
+                // 显示模态框
+                cropAvatarModal.show();
+                
+                // 模态框显示后初始化cropper
+                $('#cropAvatarModal').one('shown.bs.modal', function() {
+                    const image = document.getElementById('cropImage');
+                    cropper = new Cropper(image, {
+                        aspectRatio: 1, // 1:1 圆形头像
+                        viewMode: 1,
+                        dragMode: 'move',
+                        autoCropArea: 0.8,
+                        restore: false,
+                        guides: true,
+                        center: true,
+                        highlight: false,
+                        cropBoxMovable: true,
+                        cropBoxResizable: true,
+                        toggleDragModeOnDblclick: false,
+                    });
+                });
+            };
+            
+            reader.readAsDataURL(file);
+        });
+
+        // 裁剪工具按钮事件
+        $('#zoomIn').on('click', function() {
+            if (cropper) cropper.zoom(0.1);
+        });
+
+        $('#zoomOut').on('click', function() {
+            if (cropper) cropper.zoom(-0.1);
+        });
+
+        $('#rotateLeft').on('click', function() {
+            if (cropper) cropper.rotate(-45);
+        });
+
+        $('#rotateRight').on('click', function() {
+            if (cropper) cropper.rotate(45);
+        });
+
+        $('#reset').on('click', function() {
+            if (cropper) cropper.reset();
+        });
+
+        // 确认裁剪并上传
+        $('#confirmCrop').on('click', async function() {
+            if (!cropper) return;
+            
+            const btn = $(this);
+            btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i>上传中...');
+            
+            try {
+                // 获取裁剪后的canvas
+                const canvas = cropper.getCroppedCanvas({
+                    width: 300,
+                    height: 300,
+                    imageSmoothingQuality: 'high'
+                });
+                
+                // 将canvas转为blob
+                canvas.toBlob(async function(blob) {
+                    const formData = new FormData();
+                    formData.append('file', blob, 'avatar.jpg');
+                    
+                    const token = getAuthToken();
+                    
+                    try {
+                        const response = await $.ajax({
+                            url: `${API_BASE_URL}/profile/upload-avatar?token=${token}`,
+                            method: 'POST',
+                            data: formData,
+                            processData: false,
+                            contentType: false
+                        });
+                        
+                        if (response.success) {
+                            alert('头像上传成功');
+                            
+                            // 关闭模态框
+                            cropAvatarModal.hide();
+                            
+                            // 销毁cropper
+                            if (cropper) {
+                                cropper.destroy();
+                                cropper = null;
+                            }
+                            
+                            // 清空文件输入
+                            $('#avatarInput').val('');
+                            
+                            // 重新加载用户信息
+                            loadUserProfile();
+                        }
+                    } catch (error) {
+                        alert(error.responseJSON?.detail || '头像上传失败');
+                    } finally {
+                        btn.prop('disabled', false).html('<i class="fas fa-check me-1"></i>确定上传');
+                    }
+                }, 'image/jpeg', 0.9);
+                
+            } catch (error) {
+                alert('图片处理失败，请重试');
+                btn.prop('disabled', false).html('<i class="fas fa-check me-1"></i>确定上传');
+            }
+        });
+
+        // 模态框关闭时清理
+        $('#cropAvatarModal').on('hidden.bs.modal', function() {
+            if (cropper) {
+                cropper.destroy();
+                cropper = null;
+            }
+            $('#avatarInput').val('');
+        });
+
+        // 保存个人资料
+        $('#saveProfileBtn').on('click', async function() {
+            const token = getAuthToken();
+            const nickname = $('#editNickname').val();
+            const email = $('#editEmail').val();
+            
+            try {
+                const response = await $.ajax({
+                    url: `${API_BASE_URL}/profile/update?token=${token}`,
+                    method: 'PUT',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ nickname, email })
+                });
+                
+                if (response.success) {
+                    alert('个人资料更新成功');
+                    $('#editProfileModal').modal('hide');
+                    loadUserProfile();
+                }
+            } catch (error) {
+                alert(error.responseJSON?.detail || '更新失败');
+            }
+        });
+
+        // 更改密码
+        $('#changePasswordForm').on('submit', async function(e) {
+            e.preventDefault();
+            
+            const oldPassword = $('#oldPassword').val();
+            const newPassword = $('#newPassword').val();
+            const confirmPassword = $('#confirmPassword').val();
+            
+            if (newPassword !== confirmPassword) {
+                alert('两次输入的新密码不一致');
+                return;
+            }
+            
+            const token = getAuthToken();
+            
+            try {
+                const response = await $.ajax({
+                    url: `${API_BASE_URL}/profile/change-password?token=${token}`,
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ old_password: oldPassword, new_password: newPassword })
+                });
+                
+                if (response.success) {
+                    alert('密码修改成功，请重新登录');
+                    logout();
+                }
+            } catch (error) {
+                alert(error.responseJSON?.detail || '修改密码失败');
+            }
+        });
+
+        // 保存账号设置
+        $('#saveSettingsBtn').on('click', async function() {
+            const token = getAuthToken();
+            const receiveEmail = $('#receiveEmail').is(':checked');
+            
+            try {
+                const response = await $.ajax({
+                    url: `${API_BASE_URL}/profile/settings?token=${token}`,
+                    method: 'PUT',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ receive_email: receiveEmail })
+                });
+                
+                if (response.success) {
+                    alert('设置保存成功');
+                }
+            } catch (error) {
+                alert(error.responseJSON?.detail || '保存失败');
+            }
+        });
+
+        // 退出登录
+        $('#logoutBtn, #logoutBtnCard').on('click', function(e) {
+            e.preventDefault();
+            if (confirm('确定要退出登录吗？')) {
+                logout();
+            }
+        });
+
+        // 主题切换
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            if (savedTheme === 'light') {
+                $('body').addClass('light-theme');
+                $('#themeToggle i').removeClass('fa-moon').addClass('fa-sun');
+            }
+        }
+
+        $('#themeToggle').on('click', function() {
+            $('body').toggleClass('light-theme');
+            const isLight = $('body').hasClass('light-theme');
+            
+            if (isLight) {
+                $('#themeToggle i').removeClass('fa-moon').addClass('fa-sun');
+                localStorage.setItem('theme', 'light');
+            } else {
+                $('#themeToggle i').removeClass('fa-sun').addClass('fa-moon');
+                localStorage.setItem('theme', 'dark');
+            }
+        });
+
+        // 页面加载时获取用户信息
+        $(document).ready(function() {
+            initTheme();
+            loadUserProfile();
+        });
+    </script>
+
+    <!-- 消息中心模态框 -->
+    <div class="modal fade" id="messageCenterModal" tabindex="-1" aria-labelledby="messageCenterModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content" style="background: #0f172a; color: #e2e8f0; border: 1px solid rgba(255,255,255,0.1);">
+                <div class="modal-header" style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+                    <h5 class="modal-title" id="messageCenterModalLabel">
+                        <i class="fas fa-bell me-2"></i>消息中心
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- 标签页 -->
+                    <ul class="nav nav-tabs mb-3" id="messageTab" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="announcement-tab" data-bs-toggle="tab" data-bs-target="#announcement" type="button" role="tab" aria-controls="announcement" aria-selected="true">
+                                <i class="fas fa-bullhorn me-2"></i>系统公告
+                                <span class="badge bg-danger ms-1" id="announcementBadge" style="display: none;">0</span>
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="notification-tab" data-bs-toggle="tab" data-bs-target="#notification" type="button" role="tab" aria-controls="notification" aria-selected="false">
+                                <i class="fas fa-envelope me-2"></i>用户通知
+                                <span class="badge bg-danger ms-1" id="notificationBadge" style="display: none;">0</span>
+                            </button>
+                        </li>
+                    </ul>
+                    
+                    <div class="tab-content" id="messageTabContent">
+                        <!-- 系统公告 -->
+                        <div class="tab-pane fade show active" id="announcement" role="tabpanel" aria-labelledby="announcement-tab">
+                            <div id="announcementList" class="accordion">
+                                <div class="text-center py-4">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">加载中...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 用户通知 -->
+                        <div class="tab-pane fade" id="notification" role="tabpanel" aria-labelledby="notification-tab">
+                            <div id="notificationList" class="accordion">
+                                <div class="text-center py-4">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">加载中...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        /* 消息中心样式 */
+        .nav-tabs .nav-link {
+            color: #94a3b8;
+            border: none;
+            border-bottom: 2px solid transparent;
+            background: none;
+        }
+        
+        .nav-tabs .nav-link:hover {
+            color: #e2e8f0;
+            border-color: rgba(255,255,255,0.2);
+        }
+        
+        .nav-tabs .nav-link.active {
+            color: #60a5fa;
+            background: none;
+            border-bottom: 2px solid #60a5fa;
+        }
+        
+        .message-item {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+        
+        .message-item:hover {
+            background: rgba(255,255,255,0.08);
+            border-color: rgba(96,165,250,0.3);
+        }
+        
+        .message-header {
+            padding: 15px 20px;
+            transition: background 0.2s ease;
+        }
+        
+        .message-header:hover {
+            background: rgba(255,255,255,0.03);
+        }
+        
+        .message-body {
+            padding: 0 20px 15px 20px;
+        }
+        
+        .message-item.unread {
+            background: rgba(59,130,246,0.1);
+            border-left: 3px solid #3b82f6;
+        }
+        
+        .message-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #e2e8f0;
+            margin-bottom: 10px;
+        }
+        
+        .message-content {
+            color: #cbd5e1;
+            line-height: 1.8;
+            white-space: pre-wrap;
+        }
+        
+        .message-time {
+            color: #64748b;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        
+        .message-icon {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: #ef4444;
+            border-radius: 50%;
+            margin-right: 8px;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .collapse-icon {
+            transition: transform 0.3s ease;
+            display: inline-block;
+        }
+        
+        .rotate-180 {
+            transform: rotate(180deg);
+        }
+        
+        /* 亮色主题适配 */
+        body.light-theme .modal-content {
+            background: #ffffff !important;
+            color: #1e293b !important;
+        }
+        
+        body.light-theme .modal-header {
+            border-bottom-color: rgba(0,0,0,0.1) !important;
+        }
+        
+        body.light-theme .nav-tabs .nav-link {
+            color: #64748b;
+        }
+        
+        body.light-theme .nav-tabs .nav-link.active {
+            color: #3b82f6;
+            border-bottom-color: #3b82f6;
+        }
+        
+        body.light-theme .message-item {
+            background: rgba(0,0,0,0.03);
+            border-color: rgba(0,0,0,0.1);
+        }
+        
+        body.light-theme .message-item:hover {
+            background: rgba(0,0,0,0.05);
+            border-color: rgba(59,130,246,0.3);
+        }
+        
+        body.light-theme .message-item.unread {
+            background: rgba(59,130,246,0.08);
+            border-left-color: #3b82f6;
+        }
+        
+        body.light-theme .message-header:hover {
+            background: rgba(0,0,0,0.02);
+        }
+        
+        body.light-theme .message-title {
+            color: #1e293b;
+        }
+        
+        body.light-theme .message-content {
+            color: #475569;
+        }
+        
+        body.light-theme .message-time {
+            color: #64748b;
+        }
+        
+        body.light-theme .collapse-icon {
+            color: #64748b !important;
+        }
+        
+        body.light-theme .text-muted {
+            color: #94a3b8 !important;
+        }
+        
+        /* 头像裁剪样式 */
+        .crop-container {
+            position: relative;
+            background: #000;
+            border-radius: 8px;
+        }
+        
+        /* Cropper.js的圆形裁剪框样式 */
+        .cropper-view-box,
+        .cropper-face {
+            border-radius: 50% !important;
+        }
+        
+        .cropper-view-box {
+            box-shadow: 0 0 0 1px #39f;
+            outline: 0;
+        }
+        
+        /* 亮色主题下的裁剪模态框 */
+        body.light-theme #cropAvatarModal .modal-content {
+            background: #ffffff !important;
+            color: #1e293b !important;
+        }
+        
+        body.light-theme #cropAvatarModal .modal-header,
+        body.light-theme #cropAvatarModal .modal-footer {
+            border-color: rgba(0,0,0,0.1) !important;
+        }
+        
+        body.light-theme #cropAvatarModal .btn-outline-light {
+            color: #1e293b !important;
+            border-color: rgba(0,0,0,0.2) !important;
+        }
+        
+        body.light-theme #cropAvatarModal .btn-outline-light:hover {
+            background: rgba(0,0,0,0.05) !important;
+        }
+    </style>
+
+    <script>
+        // 消息中心功能
+        let messageCenterModal;
+        let allAnnouncements = [];
+        let allNotifications = [];
+        
+        // 获取已读公告ID列表
+        function getReadAnnouncementIds() {
+            const stored = localStorage.getItem('readAnnouncementIds');
+            return stored ? JSON.parse(stored) : [];
+        }
+        
+        // 检查通知是否已触发过礼花
+        function hasShownConfetti(notificationId) {
+            const shown = localStorage.getItem('confettiShown_' + notificationId);
+            return shown === 'true';
+        }
+        
+        // 标记通知已触发礼花
+        function markConfettiShown(notificationId) {
+            localStorage.setItem('confettiShown_' + notificationId, 'true');
+        }
+        
+        // 触发礼花动画
+        function showConfetti() {
+            const duration = 6 * 1000; // 6秒
+            const animationEnd = Date.now() + duration;
+            const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 9999 };
+            
+            function randomInRange(min, max) {
+                return Math.random() * (max - min) + min;
+            }
+            
+            const interval = setInterval(function() {
+                const timeLeft = animationEnd - Date.now();
+                
+                if (timeLeft <= 0) {
+                    return clearInterval(interval);
+                }
+                
+                const particleCount = 50 * (timeLeft / duration);
+                
+                // 从左侧发射
+                confetti(Object.assign({}, defaults, {
+                    particleCount,
+                    origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 }
+                }));
+                
+                // 从右侧发射
+                confetti(Object.assign({}, defaults, {
+                    particleCount,
+                    origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 }
+                }));
+            }, 250);
+        }
+        
+        // 标记公告为已读
+        function markAnnouncementAsRead(announcementId) {
+            const readIds = getReadAnnouncementIds();
+            if (!readIds.includes(announcementId)) {
+                readIds.push(announcementId);
+                localStorage.setItem('readAnnouncementIds', JSON.stringify(readIds));
+                updateUnreadBadges();
+            }
+        }
+        
+        // 标记通知为已读（调用API）
+        async function markNotificationAsRead(notificationId) {
+            const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+            if (!token) {
+                console.error('未找到token');
+                return Promise.reject('未找到token');
+            }
+            
+            try {
+                const response = await $.ajax({
+                    url: `${API_BASE_URL}/message/notifications/${notificationId}/read?token=${token}`,
+                    method: 'POST'
+                });
+                console.log('标记通知已读API响应:', response);
+                
+                // 更新本地数据
+                const notification = allNotifications.find(n => n.id === notificationId);
+                if (notification) {
+                    notification.is_read = true;
+                    console.log('本地数据已更新，通知ID:', notificationId, '现在is_read=true');
+                }
+                
+                // 立即更新徽章
+                updateUnreadBadges();
+                return Promise.resolve();
+            } catch (error) {
+                console.error('标记通知已读失败:', error);
+                if (error.responseJSON) {
+                    console.error('错误详情:', error.responseJSON);
+                }
+                return Promise.reject(error);
+            }
+        }
+        
+        // 更新未读徽章
+        function updateUnreadBadges() {
+            const readAnnouncementIds = getReadAnnouncementIds();
+            const unreadAnnouncementCount = allAnnouncements.filter(a => !readAnnouncementIds.includes(a.id)).length;
+            const unreadNotificationCount = allNotifications.filter(n => !n.is_read).length;
+            const totalUnread = unreadAnnouncementCount + unreadNotificationCount;
+            
+            // 更新菜单中的徽章
+            if (totalUnread > 0) {
+                $('#unreadBadge').text(totalUnread).show();
+            } else {
+                $('#unreadBadge').hide();
+            }
+            
+            // 更新系统公告标签的徽章
+            if (unreadAnnouncementCount > 0) {
+                $('#announcementBadge').text(unreadAnnouncementCount).show();
+            } else {
+                $('#announcementBadge').hide();
+            }
+            
+            // 更新用户通知标签的徽章
+            if (unreadNotificationCount > 0) {
+                $('#notificationBadge').text(unreadNotificationCount).show();
+            } else {
+                $('#notificationBadge').hide();
+            }
+        }
+        
+        $(document).ready(function() {
+            // 初始化模态框
+            messageCenterModal = new bootstrap.Modal(document.getElementById('messageCenterModal'));
+            
+            // 打开消息中心
+            $('#messageCenterBtn, #messageCenterBtnCard').on('click', function(e) {
+                e.preventDefault();
+                loadMessageCenter();
+                messageCenterModal.show();
+            });
+            
+            // 加载未读消息数量
+            loadUnreadCount();
+        });
+        
+        // 加载未读消息数量（简化版，仅在页面加载时调用一次获取数据并计算）
+        async function loadUnreadCount() {
+            const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+            if (!token) return;
+            
+            try {
+                const response = await $.ajax({
+                    url: `${API_BASE_URL}/message/center`,
+                    data: { token: token }
+                });
+                
+                // 保存数据
+                allAnnouncements = response.announcements || [];
+                allNotifications = response.notifications || [];
+                
+                // 更新徽章
+                updateUnreadBadges();
+            } catch (error) {
+                console.error('加载未读消息数量失败:', error);
+            }
+        }
+        
+        // 加载消息中心数据
+        async function loadMessageCenter() {
+            const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+            if (!token) {
+                alert('请先登录');
+                return;
+            }
+            
+            try {
+                const response = await $.ajax({
+                    url: `${API_BASE_URL}/message/center`,
+                    data: { token: token }
+                });
+                
+                // 保存数据到全局变量
+                allAnnouncements = response.announcements || [];
+                allNotifications = response.notifications || [];
+                
+                // 渲染系统公告
+                renderAnnouncements(allAnnouncements);
+                
+                // 渲染用户通知
+                renderNotifications(allNotifications);
+                
+                // 更新未读徽章
+                updateUnreadBadges();
+            } catch (error) {
+                console.error('加载消息中心失败:', error);
+                let errorMsg = '加载失败';
+                if (error.responseJSON && error.responseJSON.detail) {
+                    errorMsg = error.responseJSON.detail;
+                } else if (error.statusText) {
+                    errorMsg = error.statusText;
+                }
+                $('#announcementList').html('<div class="text-center py-4 text-danger">' + errorMsg + '<br><small>请检查：1.后端API是否重启 2.数据库是否有数据 3.Token是否有效</small></div>');
+                $('#notificationList').html('<div class="text-center py-4 text-danger">' + errorMsg + '</div>');
+            }
+        }
+        
+        // 渲染系统公告
+        function renderAnnouncements(announcements) {
+            const container = $('#announcementList');
+            
+            if (!announcements || announcements.length === 0) {
+                container.html('<div class="text-center py-4 text-muted">暂无公告</div>');
+                return;
+            }
+            
+            const readIds = getReadAnnouncementIds();
+            let html = '';
+            announcements.forEach((item, index) => {
+                const collapseId = `announcement-${item.id}`;
+                const isUnread = !readIds.includes(item.id);
+                const unreadIcon = isUnread ? '<span class="message-icon"></span>' : '';
+                const unreadClass = isUnread ? 'unread' : '';
+                
+                html += `
+                    <div class="message-item message-card ${unreadClass}" data-announcement-id="${item.id}">
+                        <div class="message-header" data-bs-toggle="collapse" data-bs-target="#${collapseId}" data-bs-parent="#announcementList" style="cursor: pointer;">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="message-title mb-0">
+                                    ${unreadIcon}<i class="fas fa-bullhorn me-2" style="color: #60a5fa;"></i>${item.title}
+                                    <i class="fas fa-chevron-down ms-2 collapse-icon" style="font-size: 12px; color: #94a3b8;"></i>
+                                </div>
+                                <div class="message-time mb-0" style="font-size: 13px;">
+                                    <i class="far fa-clock me-1"></i>${item.publish_time}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="collapse message-body" id="${collapseId}" data-bs-parent="#announcementList">
+                            <div class="message-content">${item.content}</div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.html(html);
+            
+            // 添加点击事件（使用事件委托）
+            container.off('click', '.message-header').on('click', '.message-header', function() {
+                const announcementId = $(this).closest('[data-announcement-id]').data('announcement-id');
+                const $messageItem = $(this).closest('.message-item');
+                $(this).find('.collapse-icon').toggleClass('rotate-180');
+                
+                const readIds = getReadAnnouncementIds();
+                if (!readIds.includes(announcementId)) {
+                    // 标记为已读
+                    markAnnouncementAsRead(announcementId);
+                    
+                    // 立即移除未读样式
+                    $messageItem.removeClass('unread').find('.message-icon').fadeOut();
+                }
+            });
+        }
+        
+        // 渲染用户通知
+        function renderNotifications(notifications) {
+            const container = $('#notificationList');
+            
+            if (!notifications || notifications.length === 0) {
+                container.html('<div class="text-center py-4 text-muted">暂无通知</div>');
+                return;
+            }
+            
+            let html = '';
+            notifications.forEach((item, index) => {
+                const unreadClass = !item.is_read ? 'unread' : '';
+                const unreadIcon = !item.is_read ? '<span class="message-icon"></span>' : '';
+                const collapseId = `notification-${item.id}`;
+                
+                html += `
+                    <div class="message-item message-card ${unreadClass}" data-notification-id="${item.id}">
+                        <div class="message-header" data-bs-toggle="collapse" data-bs-target="#${collapseId}" data-bs-parent="#notificationList" style="cursor: pointer;">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="message-title mb-0">
+                                    ${unreadIcon}<i class="fas fa-envelope me-2" style="color: #60a5fa;"></i>${item.title}
+                                    <i class="fas fa-chevron-down ms-2 collapse-icon" style="font-size: 12px; color: #94a3b8;"></i>
+                                </div>
+                                <div class="message-time mb-0" style="font-size: 13px;">
+                                    <i class="far fa-clock me-1"></i>${item.send_time}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="collapse message-body" id="${collapseId}" data-bs-parent="#notificationList">
+                            <div class="message-content">${item.content}</div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.html(html);
+            
+            // 添加点击事件（使用事件委托）
+            container.off('click', '.message-header').on('click', '.message-header', function() {
+                const notificationId = $(this).closest('[data-notification-id]').data('notification-id');
+                const $messageItem = $(this).closest('.message-item');
+                $(this).find('.collapse-icon').toggleClass('rotate-180');
+                
+                // 检查是否是欢迎通知且未读且未触发过礼花
+                const notification = allNotifications.find(n => n.id === notificationId);
+                if (notification && !notification.is_read) {
+                    if (notification.title.includes('欢迎加入') && !hasShownConfetti(notificationId)) {
+                        // 触发礼花动画
+                        showConfetti();
+                        // 标记已触发
+                        markConfettiShown(notificationId);
+                    }
+                    
+                    // 标记为已读（异步）
+                    markNotificationAsRead(notificationId).then(() => {
+                        console.log('通知', notificationId, '已标记为已读');
+                    });
+                    
+                    // 立即移除未读样式
+                    $messageItem.removeClass('unread').find('.message-icon').fadeOut();
+                }
+            });
+        }
+    </script>
+</body>
+</html>
+

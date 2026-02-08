@@ -1,0 +1,1339 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录 - 智能交通流预测系统</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background:#000; /* 由Three.js画布覆盖 */
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        /* 背景三维场景容器 */
+        #globe-bg {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+        }
+
+        /* 左侧文案与按钮区域 */
+        .hero-overlay {
+            position: fixed;
+            left: 5vw;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #fff;
+            z-index: 2;
+            max-width: 520px;
+        }
+
+        .hero-title {
+            font-size: 40px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-shadow: 0 6px 24px rgba(0,0,0,.55);
+        }
+
+        .hero-subtitle {
+            margin-top: 12px;
+            color: #cbd5e1;
+            line-height: 1.6;
+            text-shadow: 0 4px 20px rgba(0,0,0,.5);
+        }
+
+        .hero-actions { margin-top: 24px; }
+
+        .btn-hero-primary {
+            background: #3b82f6;
+            border: none;
+            color: #fff;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-weight: 700;
+            margin-right: 12px;
+            box-shadow: 0 8px 24px rgba(59,130,246,.45);
+        }
+        .btn-hero-secondary {
+            background: rgba(255,255,255,.12);
+            -webkit-backdrop-filter: blur(6px);
+            backdrop-filter: blur(6px);
+            border: 1px solid rgba(255,255,255,.25);
+            color: #e2e8f0;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-weight: 700;
+        }
+
+        /* 右下角提示（可选） */
+        .hint {
+            position: fixed;
+            right: 16px;
+            bottom: 14px;
+            color: #94a3b8;
+            font-size: 12px;
+            z-index: 2;
+        }
+
+        /* 白天/夜晚切换开关 - 圆形 */
+        .day-night-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 50%;
+            width: 56px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .day-night-toggle:hover {
+            background: rgba(255,255,255,0.2);
+            transform: scale(1.1) rotate(15deg);
+            box-shadow: 0 6px 25px rgba(255,255,255,0.3);
+        }
+
+        .toggle-icon {
+            font-size: 24px;
+            transition: all 0.5s ease;
+        }
+
+        .day-night-toggle.day-mode {
+            background: rgba(255,223,0,0.2);
+            border-color: rgba(255,223,0,0.4);
+        }
+
+        .day-night-toggle.day-mode:hover {
+            background: rgba(255,223,0,0.3);
+            box-shadow: 0 6px 25px rgba(255,223,0,0.4);
+        }
+
+        .day-night-toggle.day-mode .toggle-icon {
+            transform: rotate(180deg);
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 420px;
+            background: rgba(255,255,255,.94);
+            border-radius: 10px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+            overflow: hidden;
+            animation: slideDown 0.5s ease;
+            position: fixed;
+            right: 6vw;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 3;
+            display: none; /* 默认隐藏，通过按钮打开 */
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .login-header {
+            background: linear-gradient(135deg, #0ea5e9 0%, #6366f1 100%);
+            padding: 40px 30px;
+            text-align: center;
+            color: #fff;
+        }
+
+        .login-header i {
+            font-size: 50px;
+            margin-bottom: 15px;
+        }
+
+        .login-header h2 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .login-header p {
+            font-size: 14px;
+            opacity: 0.9;
+            margin: 0;
+        }
+
+        /* 关闭按钮 */
+        .close-panel {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 28px;
+            height: 28px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 50%;
+            color: #fff;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            z-index: 10;
+            padding: 0;
+            margin: 0;
+        }
+
+        .close-panel:hover {
+            background: rgba(255, 255, 255, 0.35);
+            transform: rotate(90deg) scale(1.1);
+        }
+
+        .close-panel:active {
+            transform: rotate(90deg) scale(0.95);
+        }
+
+        .close-panel i {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+            margin: 0;
+            padding: 0;
+        }
+
+        .login-body {
+            padding: 40px 30px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .input-group-custom {
+            position: relative;
+        }
+
+        .input-group-custom i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+            font-size: 16px;
+        }
+
+        .form-control-custom {
+            width: 100%;
+            padding: 12px 15px 12px 45px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .form-control-custom:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-control-custom.error {
+            border-color: #f56c6c;
+        }
+
+        .form-text {
+            font-size: 12px;
+            color: #999;
+            margin-top: 5px;
+        }
+
+        .form-text.error {
+            color: #f56c6c;
+        }
+
+        .password-strength-bar.weak {
+            width: 33%;
+            background: #f56c6c;
+        }
+
+        .password-strength-bar.medium {
+            width: 66%;
+            background: #e6a23c;
+        }
+
+        .password-strength-bar.strong {
+            width: 100%;
+            background: #67c23a;
+        }
+
+        .form-check-custom {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .form-check-custom label {
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+            color: #666;
+            cursor: pointer;
+        }
+
+        .form-check-custom input[type="checkbox"] {
+            margin-right: 6px;
+            cursor: pointer;
+        }
+
+        .forgot-link {
+            font-size: 14px;
+            color: #667eea;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .forgot-link:hover {
+            color: #764ba2;
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-login:active {
+            transform: translateY(0);
+        }
+
+        .btn-login:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .divider {
+            text-align: center;
+            margin: 25px 0;
+            position: relative;
+        }
+
+        .divider::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            width: 100%;
+            height: 1px;
+            background: #ddd;
+        }
+
+        .divider span {
+            position: relative;
+            background: #fff;
+            padding: 0 15px;
+            color: #999;
+            font-size: 14px;
+        }
+
+        .register-link {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .register-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+
+        .register-link a:hover {
+            color: #764ba2;
+        }
+
+        .alert-custom {
+            padding: 12px 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .alert-danger {
+            background: #fee;
+            color: #c33;
+            border: 1px solid #fcc;
+        }
+
+        .alert-success {
+            background: #efe;
+            color: #3c3;
+            border: 1px solid #cfc;
+        }
+
+        .spinner-border-sm {
+            width: 1rem;
+            height: 1rem;
+            border-width: 0.15rem;
+            margin-right: 8px;
+        }
+
+        /* 响应式 */
+        @media (max-width: 480px) {
+            .hero-title { font-size: 28px; }
+            .hero-overlay { left: 24px; right: 24px; max-width: none; }
+            .login-container { left: 24px; right: 24px; max-width: none; position: fixed; top: auto; bottom: 24px; transform: none; }
+            .login-header { padding: 24px 18px; }
+            .login-body { padding: 24px 18px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- 背景：Three.js 3D 地球与星空 -->
+    <div id="globe-bg"></div>
+
+    <!-- 白天/夜晚切换开关 -->
+    <div class="day-night-toggle" id="dayNightToggle" title="切换白天/夜晚模式">
+        <span class="toggle-icon">🌙</span>
+    </div>
+
+    <!-- 左侧文案与操作按钮 -->
+    <section class="hero-overlay">
+        <h1 class="hero-title">智能交通流预测系统</h1>
+        <div class="hero-actions">
+            <button id="openLogin" class="btn btn-hero-primary"><i class="fas fa-right-to-bracket me-2"></i>登录系统</button>
+            <button id="openRegister" class="btn btn-hero-secondary"><i class="fas fa-user-plus me-2"></i>注册账号</button>
+        </div>
+    </section>
+
+    <div class="hint">拖拽地球查看 · 滚轮缩放</div>
+
+    <!-- 登录面板 -->
+    <div class="login-container" id="loginPanel">
+        <div class="login-header">
+            <button class="close-panel" id="closeLogin" title="关闭">
+                <i class="fas fa-times"></i>
+            </button>
+            <i class="fas fa-traffic-light"></i>
+            <h2>智能交通流预测系统</h2>
+            <p>欢迎回来，请登录您的账户</p>
+        </div>
+        
+        <div class="login-body">
+            <!-- 错误提示 -->
+            <div id="alertBox" class="alert-custom"></div>
+            
+            <!-- 登录表单 -->
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="username">用户名</label>
+                    <div class="input-group-custom">
+                        <i class="fas fa-user"></i>
+                        <input 
+                            type="text" 
+                            id="username" 
+                            name="username" 
+                            class="form-control-custom" 
+                            placeholder="请输入用户名"
+                            required
+                            autocomplete="username"
+                        >
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">密码</label>
+                    <div class="input-group-custom">
+                        <i class="fas fa-lock"></i>
+                        <input 
+                            type="password" 
+                            id="password" 
+                            name="password" 
+                            class="form-control-custom" 
+                            placeholder="请输入密码"
+                            required
+                            autocomplete="current-password"
+                        >
+                    </div>
+                </div>
+
+                <div class="form-check-custom">
+                    <label>
+                        <input type="checkbox" id="rememberMe" name="rememberMe">
+                        记住我
+                    </label>
+                    <a href="#" class="forgot-link">忘记密码？</a>
+                </div>
+
+                <button type="submit" id="loginBtn" class="btn-login">
+                    登录
+                </button>
+            </form>
+
+            <div class="divider">
+                <span>或</span>
+            </div>
+
+            <div class="register-link">
+                还没有账户？<a href="javascript:void(0);" id="switchToRegister">立即注册</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 注册面板 -->
+    <div class="login-container" id="registerPanel" style="display: none; max-width: 480px;">
+        <div class="login-header">
+            <button class="close-panel" id="closeRegister" title="关闭">
+                <i class="fas fa-times"></i>
+            </button>
+            <i class="fas fa-user-plus"></i>
+            <h2>注册新账户</h2>
+            <p>创建您的交通预测系统账户</p>
+        </div>
+        
+        <div class="login-body" style="max-height: 600px; overflow-y: auto;">
+            <!-- 提示信息 -->
+            <div id="registerAlertBox" class="alert-custom"></div>
+            
+            <!-- 注册表单 -->
+            <form id="registerForm">
+                <div class="form-group">
+                    <label for="reg_username">
+                        用户名<span style="color: #f56c6c; margin-left: 3px;">*</span>
+                    </label>
+                    <div class="input-group-custom">
+                        <i class="fas fa-user"></i>
+                        <input 
+                            type="text" 
+                            id="reg_username" 
+                            name="username" 
+                            class="form-control-custom" 
+                            placeholder="3-20位字母、数字或下划线"
+                            required
+                            autocomplete="username"
+                            minlength="3"
+                            maxlength="20"
+                        >
+                    </div>
+                    <div class="form-text" id="regUsernameHelp">用户名将用于登录</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="reg_email">
+                        邮箱<span style="color: #f56c6c; margin-left: 3px;">*</span>
+                    </label>
+                    <div class="input-group-custom">
+                        <i class="fas fa-envelope"></i>
+                        <input 
+                            type="email" 
+                            id="reg_email" 
+                            name="email" 
+                            class="form-control-custom" 
+                            placeholder="请输入您的邮箱"
+                            required
+                            autocomplete="email"
+                        >
+                    </div>
+                    <div class="form-text" id="regEmailHelp">用于密码找回和接收通知</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="reg_password">
+                        密码<span style="color: #f56c6c; margin-left: 3px;">*</span>
+                    </label>
+                    <div class="input-group-custom">
+                        <i class="fas fa-lock"></i>
+                        <input 
+                            type="password" 
+                            id="reg_password" 
+                            name="password" 
+                            class="form-control-custom" 
+                            placeholder="至少6位密码"
+                            required
+                            autocomplete="new-password"
+                            minlength="6"
+                        >
+                    </div>
+                    <div style="height: 4px; background: #e4e7ed; border-radius: 2px; margin-top: 8px; overflow: hidden;">
+                        <div class="password-strength-bar" id="passwordStrengthBar" style="height: 100%; width: 0; transition: all 0.3s ease;"></div>
+                    </div>
+                    <div class="form-text" id="regPasswordHelp">建议使用字母、数字和符号组合</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="reg_confirmPassword">
+                        确认密码<span style="color: #f56c6c; margin-left: 3px;">*</span>
+                    </label>
+                    <div class="input-group-custom">
+                        <i class="fas fa-lock"></i>
+                        <input 
+                            type="password" 
+                            id="reg_confirmPassword" 
+                            name="confirmPassword" 
+                            class="form-control-custom" 
+                            placeholder="请再次输入密码"
+                            required
+                            autocomplete="new-password"
+                        >
+                    </div>
+                    <div class="form-text" id="regConfirmPasswordHelp"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="reg_nickname">昵称</label>
+                    <div class="input-group-custom">
+                        <i class="fas fa-id-badge"></i>
+                        <input 
+                            type="text" 
+                            id="reg_nickname" 
+                            name="nickname" 
+                            class="form-control-custom" 
+                            placeholder="显示名称（可选）"
+                            maxlength="50"
+                        >
+                    </div>
+                    <div class="form-text">不填写将使用用户名作为昵称</div>
+                </div>
+
+                <div style="display: flex; align-items: flex-start; margin-bottom: 20px;">
+                    <input type="checkbox" id="agreeTerms" name="agreeTerms" required style="margin-right: 8px; margin-top: 3px; cursor: pointer;">
+                    <label for="agreeTerms" style="font-size: 13px; color: #666; cursor: pointer; margin: 0;">
+                        我已阅读并同意<a href="#" style="color: #667eea; text-decoration: none;">用户协议</a>和<a href="#" style="color: #667eea; text-decoration: none;">隐私政策</a>
+                    </label>
+                </div>
+
+                <button type="submit" id="registerBtn" class="btn-login">
+                    注册
+                </button>
+            </form>
+
+            <div class="divider">
+                <span>或</span>
+            </div>
+
+            <div class="register-link">
+                已有账户？<a href="javascript:void(0);" id="switchToLogin">立即登录</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Three.js 与 Controls (使用兼容的 0.128.0 版本) -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    
+    <script>
+        // 生产环境地址
+        const API_BASE_URL = 'https://yjwkusxabeto.sealoshzh.site';  // 后端公网地址
+        let isLoggedIn = false;
+
+        function getAuthToken(){
+            return localStorage.getItem('token') || sessionStorage.getItem('token');
+        }
+
+        function getUserInfo(){
+            const userStr = localStorage.getItem('user') || sessionStorage.getItem('user');
+            if (userStr) {
+                try {
+                    return JSON.parse(userStr);
+                } catch (e) {
+                    return null;
+                }
+            }
+            return null;
+        }
+
+        // 检查是否已登录
+        async function checkLoginStatus() {
+            // 检查是否是主动退出登录
+            const manualLogout = sessionStorage.getItem('manualLogout');
+            if (manualLogout === 'true') {
+                // 清除标记
+                sessionStorage.removeItem('manualLogout');
+                isLoggedIn = false;
+                return;
+            }
+
+            const token = getAuthToken();
+            if (!token) {
+                isLoggedIn = false;
+                return;
+            }
+
+            try {
+                await $.ajax({ 
+                    url: `${API_BASE_URL}/auth/check`, 
+                    data: { token },
+                    timeout: 3000
+                });
+                
+                // token有效，已登录
+                isLoggedIn = true;
+                const user = getUserInfo();
+                const displayName = user?.nickname || user?.username || '用户';
+                
+                // 修改"登录系统"按钮文字和样式
+                $('#openLogin').html(`<i class="fas fa-arrow-right me-2"></i>欢迎回来，${displayName}`);
+                $('#openLogin').css({
+                    'background': 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+                    'box-shadow': '0 4px 15px rgba(34, 197, 94, 0.4)'
+                });
+                
+                // 隐藏注册按钮，显示直接进入提示
+                $('#openRegister').html(`<i class="fas fa-info-circle me-2"></i>点击左侧进入系统`);
+                $('#openRegister').css({
+                    'background': 'rgba(255,255,255,0.1)',
+                    'cursor': 'default'
+                });
+                $('#openRegister').off('click'); // 移除注册按钮的点击事件
+                
+            } catch (err) {
+                // token无效或过期
+                isLoggedIn = false;
+                localStorage.removeItem('token');
+                sessionStorage.removeItem('token');
+                localStorage.removeItem('user');
+                sessionStorage.removeItem('user');
+            }
+        }
+
+        // 根据URL路径自动打开对应面板
+        $(document).ready(async function() {
+            // 先检查登录状态
+            await checkLoginStatus();
+            
+            const currentPath = window.location.pathname;
+            if (currentPath === '/register') {
+                $('#registerPanel').show();
+            }
+        });
+
+        // 打开登录面板（修改为智能判断）
+        $('#openLogin').on('click', function(){
+            // 如果已登录，直接跳转到input页面
+            if (isLoggedIn) {
+                sessionStorage.setItem('fromLogin', 'true'); // 标记从登录页进入
+                window.location.href = '/input';
+                return;
+            }
+            
+            // 未登录，显示登录面板
+            $('#registerPanel').fadeOut(250);
+            $('#loginPanel').fadeIn(250);
+            // 更新URL（不刷新页面）
+            history.pushState(null, '', '/login');
+        });
+
+        // 打开注册面板
+        $('#openRegister').on('click', function(){
+            $('#loginPanel').fadeOut(250);
+            $('#registerPanel').fadeIn(250);
+            // 更新URL（不刷新页面）
+            history.pushState(null, '', '/register');
+        });
+
+        // 切换到注册面板
+        $('#switchToRegister').on('click', function(){
+            $('#loginPanel').fadeOut(250, function(){
+                $('#registerPanel').fadeIn(250);
+            });
+            // 更新URL（不刷新页面）
+            history.pushState(null, '', '/register');
+        });
+
+        // 切换到登录面板
+        $('#switchToLogin').on('click', function(){
+            $('#registerPanel').fadeOut(250, function(){
+                $('#loginPanel').fadeIn(250);
+            });
+            // 更新URL（不刷新页面）
+            history.pushState(null, '', '/login');
+        });
+
+        // 关闭登录面板
+        $('#closeLogin').on('click', function(e){
+            e.preventDefault();
+            $('#loginPanel').fadeOut(250);
+        });
+
+        // 关闭注册面板
+        $('#closeRegister').on('click', function(e){
+            e.preventDefault();
+            $('#registerPanel').fadeOut(250);
+        });
+
+        // 支持ESC键关闭面板
+        $(document).on('keydown', function(e) {
+            if (e.key === 'Escape' || e.keyCode === 27) {
+                if ($('#loginPanel').is(':visible')) {
+                    $('#loginPanel').fadeOut(250);
+                }
+                if ($('#registerPanel').is(':visible')) {
+                    $('#registerPanel').fadeOut(250);
+                }
+            }
+        });
+
+        // 初始化Three.js背景
+        (function initGlobe(){
+            const container = document.getElementById('globe-bg');
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(55, window.innerWidth/window.innerHeight, 0.1, 2000);
+            camera.position.set(0, 0, 22);
+
+            const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.outputEncoding = THREE.sRGBEncoding;
+            renderer.setClearColor(0x000000, 1);
+            container.appendChild(renderer.domElement);
+
+            // ========== 星星系统（封装）==========
+            let stars = null;
+            let starsVisible = true;
+            
+            function createStars() {
+                const starsGeometry = new THREE.BufferGeometry();
+                const starCount = 6000;
+                const positions = new Float32Array(starCount * 3);
+                for (let i = 0; i < starCount; i++) {
+                    const r = 120 + Math.random()*100;
+                    const theta = Math.random()*Math.PI*2;
+                    const phi = Math.acos((Math.random()*2)-1);
+                    positions[i*3] = r * Math.sin(phi) * Math.cos(theta);
+                    positions[i*3+1] = r * Math.sin(phi) * Math.sin(theta);
+                    positions[i*3+2] = r * Math.cos(phi);
+                }
+                starsGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+                const starsMaterial = new THREE.PointsMaterial({ 
+                    color: 0xaab7c4, 
+                    size: 1.0, 
+                    sizeAttenuation: true, 
+                    transparent: true,
+                    opacity: 1.0
+                });
+                stars = new THREE.Points(starsGeometry, starsMaterial);
+                scene.add(stars);
+            }
+            
+            function toggleStars(visible) {
+                if (stars) {
+                    stars.material.opacity = visible ? 1.0 : 0.3; // 白天模式亮度20%，不完全隐藏
+                    starsVisible = visible;
+                }
+            }
+            
+            createStars();
+
+            // ========== 地球系统 ==========
+            const loader = new THREE.TextureLoader();
+            loader.setCrossOrigin('anonymous');
+            
+            // 加载纹理
+            const earthTexture = loader.load('/static/images/earth-blue-marble.jpg');
+            const topoTexture = loader.load('/static/images/earth-topology.jpg');
+            const cloudsTexture = loader.load('/static/images/earth-clouds.png');
+            
+            // 创建地球主体
+            const earth = new THREE.Mesh(
+                new THREE.SphereGeometry(8, 64, 64),
+                new THREE.MeshPhongMaterial({ 
+                    map: earthTexture, 
+                    bumpMap: topoTexture, 
+                    bumpScale: 0.3, 
+                    specular: new THREE.Color(0x333333), 
+                    shininess: 15 
+                })
+            );
+            scene.add(earth);
+            
+            // 创建云层
+            const clouds = new THREE.Mesh(
+                new THREE.SphereGeometry(8.1, 64, 64),
+                new THREE.MeshPhongMaterial({ 
+                    map: cloudsTexture, 
+                    transparent: true, 
+                    opacity: 0.4,
+                    depthWrite: false
+                })
+            );
+            scene.add(clouds);
+
+            // ========== 地球表面标记点（30个随机彩色点 - 闪烁效果）==========
+            const markerGroup = new THREE.Group();
+            const markerColors = [0xff0000, 0xffff00, 0x00ff00]; // 红、黄、绿
+            const earthRadius = 8.05; // 地球半径 + 0.05
+            const markers = []; // 存储标记点用于闪烁动画
+            
+            for (let i = 0; i < 30; i++) {
+                // 随机位置（球面坐标）
+                const theta = Math.random() * Math.PI * 2; // 经度
+                const phi = Math.acos((Math.random() * 2) - 1); // 纬度
+                
+                // 转换为笛卡尔坐标
+                const x = earthRadius * Math.sin(phi) * Math.cos(theta);
+                const y = earthRadius * Math.sin(phi) * Math.sin(theta);
+                const z = earthRadius * Math.cos(phi);
+                
+                // 随机选择颜色
+                const colorIndex = Math.floor(Math.random() * 3);
+                const color = markerColors[colorIndex];
+                
+                // 创建标记点（小球体）
+                const marker = new THREE.Mesh(
+                    new THREE.SphereGeometry(0.08, 16, 16),
+                    new THREE.MeshBasicMaterial({ 
+                        color: color,
+                        transparent: true,
+                        opacity: 0.9
+                    })
+                );
+                marker.position.set(x, y, z);
+                
+                // 为闪烁效果添加自定义属性
+                marker.userData.blinkSpeed = 0.5 + Math.random() * 1.5; // 随机闪烁速度
+                marker.userData.blinkPhase = Math.random() * Math.PI * 2; // 随机起始相位
+                
+                markerGroup.add(marker);
+                markers.push(marker); // 保存引用用于动画
+            }
+            
+            earth.add(markerGroup); // 将标记组添加到地球上，跟随地球旋转
+
+            // ========== 光照 ==========
+            const ambient = new THREE.AmbientLight(0xffffff, 0.55);
+            const dir = new THREE.DirectionalLight(0xffffff, 1.0);
+            dir.position.set(5, 3, 5);
+            scene.add(ambient, dir);
+
+            // ========== 交互控制 ==========
+            let controls = null;
+            if (THREE.OrbitControls) {
+                controls = new THREE.OrbitControls(camera, renderer.domElement);
+                controls.enableDamping = true;
+                controls.enablePan = false;
+                controls.minDistance = 12;
+                controls.maxDistance = 50;
+                controls.autoRotate = true;
+                controls.autoRotateSpeed = 0.12;
+            }
+
+            // ========== 响应式 ==========
+            function onResize(){
+                camera.aspect = window.innerWidth/window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            }
+            window.addEventListener('resize', onResize);
+
+            // ========== 动画循环 ==========
+            let time = 0;
+            (function animate(){
+                requestAnimationFrame(animate);
+                time += 0.01;
+                
+                // 星空旋转
+                if (stars) stars.rotation.y += 0.0002;
+                
+                // 地球自转（标记点会跟随）
+                earth.rotation.y += 0.00055;
+                
+                // 云层旋转
+                clouds.rotation.y += 0.00075;
+                
+                // 标记点闪烁效果
+                markers.forEach(marker => {
+                    const phase = marker.userData.blinkPhase;
+                    const speed = marker.userData.blinkSpeed;
+                    // 使用正弦函数创建平滑的闪烁效果（透明度在0.3-1.0之间）
+                    marker.material.opacity = 0.55 + 0.45 * Math.sin(time * speed + phase);
+                });
+                
+                if (controls) controls.update();
+                renderer.render(scene, camera);
+            })();
+
+            // ========== 白天/夜晚切换功能 ==========
+            let isDayMode = false;
+            const toggleBtn = document.getElementById('dayNightToggle');
+            
+            toggleBtn.addEventListener('click', function() {
+                isDayMode = !isDayMode;
+                toggleStars(!isDayMode);
+                
+                if (isDayMode) {
+                    // 白天模式
+                    toggleBtn.classList.add('day-mode');
+                    toggleBtn.querySelector('.toggle-icon').textContent = '☀️';
+                } else {
+                    // 夜晚模式
+                    toggleBtn.classList.remove('day-mode');
+                    toggleBtn.querySelector('.toggle-icon').textContent = '🌙';
+                }
+            });
+        })();
+
+        // 显示提示信息
+        function showAlert(message, type = 'danger') {
+            const alertBox = $('#alertBox');
+            alertBox.removeClass('alert-danger alert-success');
+            alertBox.addClass('alert-' + type);
+            alertBox.text(message);
+            alertBox.fadeIn();
+            
+            setTimeout(() => {
+                alertBox.fadeOut();
+            }, 5000);
+        }
+
+        // 登录表单提交
+        $('#loginForm').on('submit', async function(e) {
+            e.preventDefault();
+            
+            const username = $('#username').val().trim();
+            const password = $('#password').val();
+            const rememberMe = $('#rememberMe').is(':checked');
+            
+            // 验证
+            if (!username || !password) {
+                showAlert('请填写完整的登录信息');
+                return;
+            }
+            
+            // 禁用按钮
+            const loginBtn = $('#loginBtn');
+            const originalText = loginBtn.html();
+            loginBtn.prop('disabled', true);
+            loginBtn.html('<span class="spinner-border spinner-border-sm"></span>登录中...');
+            
+            try {
+                // 发送登录请求
+                const response = await $.ajax({
+                    url: `${API_BASE_URL}/auth/login`,
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        username: username,
+                        password: password
+                    })
+                });
+                
+                if (response.success && response.token) {
+                    // 保存令牌
+                    if (rememberMe) {
+                        localStorage.setItem('token', response.token);
+                        localStorage.setItem('user', JSON.stringify(response.user));
+                    } else {
+                        sessionStorage.setItem('token', response.token);
+                        sessionStorage.setItem('user', JSON.stringify(response.user));
+                    }
+                    
+                    // 清除主动退出登录标记
+                    sessionStorage.removeItem('manualLogout');
+                    
+                    showAlert('登录成功！正在跳转...', 'success');
+                    
+                    // 设置标记并跳转到主页
+                    sessionStorage.setItem('fromLogin', 'true'); // 标记从登录页进入
+                    setTimeout(() => {
+                        window.location.href = '/input';
+                    }, 1000);
+                } else {
+                    showAlert(response.message || '登录失败');
+                }
+                
+            } catch (error) {
+                console.error('Login error:', error);
+                
+                let errorMessage = '登录失败，请稍后重试';
+                
+                if (error.responseJSON && error.responseJSON.detail) {
+                    errorMessage = error.responseJSON.detail;
+                } else if (error.statusText) {
+                    errorMessage = error.statusText;
+                }
+                
+                showAlert(errorMessage);
+            } finally {
+                // 恢复按钮
+                loginBtn.prop('disabled', false);
+                loginBtn.html(originalText);
+            }
+        });
+
+        // Enter键提交
+        $(document).on('keypress', function(e) {
+            if (e.which === 13 && $('#loginPanel').is(':visible')) {
+                $('#loginForm').submit();
+            }
+            if (e.which === 13 && $('#registerPanel').is(':visible')) {
+                $('#registerForm').submit();
+            }
+        });
+
+        // ============ 注册功能 ============
+
+        // 显示注册提示信息
+        function showRegisterAlert(message, type = 'danger') {
+            const alertBox = $('#registerAlertBox');
+            alertBox.removeClass('alert-danger alert-success');
+            alertBox.addClass('alert-' + type);
+            alertBox.text(message);
+            alertBox.fadeIn();
+            
+            setTimeout(() => {
+                alertBox.fadeOut();
+            }, 5000);
+        }
+
+        // 验证用户名
+        function validateUsername(username) {
+            const regex = /^[a-zA-Z0-9_]{3,20}$/;
+            if (!regex.test(username)) {
+                return '用户名只能包含字母、数字和下划线，长度3-20位';
+            }
+            return '';
+        }
+
+        // 验证邮箱
+        function validateEmail(email) {
+            const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!regex.test(email)) {
+                return '请输入有效的邮箱地址';
+            }
+            return '';
+        }
+
+        // 检查密码强度
+        function checkPasswordStrength(password) {
+            let strength = 0;
+            
+            if (password.length >= 6) strength++;
+            if (password.length >= 10) strength++;
+            if (/[a-z]/.test(password)) strength++;
+            if (/[A-Z]/.test(password)) strength++;
+            if (/[0-9]/.test(password)) strength++;
+            if (/[^a-zA-Z0-9]/.test(password)) strength++;
+            
+            const bar = $('#passwordStrengthBar');
+            bar.removeClass('weak medium strong');
+            
+            if (strength <= 2) {
+                bar.addClass('weak');
+                return 'weak';
+            } else if (strength <= 4) {
+                bar.addClass('medium');
+                return 'medium';
+            } else {
+                bar.addClass('strong');
+                return 'strong';
+            }
+        }
+
+        // 实时验证
+        $('#reg_username').on('blur', function() {
+            const username = $(this).val().trim();
+            const error = validateUsername(username);
+            const helpText = $('#regUsernameHelp');
+            
+            if (error) {
+                $(this).addClass('error');
+                helpText.addClass('error').text(error);
+            } else {
+                $(this).removeClass('error');
+                helpText.removeClass('error').text('用户名将用于登录');
+            }
+        });
+
+        $('#reg_email').on('blur', function() {
+            const email = $(this).val().trim();
+            const error = validateEmail(email);
+            const helpText = $('#regEmailHelp');
+            
+            if (error) {
+                $(this).addClass('error');
+                helpText.addClass('error').text(error);
+            } else {
+                $(this).removeClass('error');
+                helpText.removeClass('error').text('用于密码找回和接收通知');
+            }
+        });
+
+        $('#reg_password').on('input', function() {
+            const password = $(this).val();
+            if (password) {
+                checkPasswordStrength(password);
+            } else {
+                $('#passwordStrengthBar').removeClass('weak medium strong');
+            }
+        });
+
+        $('#reg_confirmPassword').on('input', function() {
+            const password = $('#reg_password').val();
+            const confirmPassword = $(this).val();
+            const helpText = $('#regConfirmPasswordHelp');
+            
+            if (confirmPassword) {
+                if (password !== confirmPassword) {
+                    $(this).addClass('error');
+                    helpText.addClass('error').text('两次输入的密码不一致');
+                } else {
+                    $(this).removeClass('error');
+                    helpText.removeClass('error').text('密码匹配');
+                }
+            } else {
+                $(this).removeClass('error');
+                helpText.removeClass('error').text('');
+            }
+        });
+
+        // 注册表单提交
+        $('#registerForm').on('submit', async function(e) {
+            e.preventDefault();
+            
+            const username = $('#reg_username').val().trim();
+            const email = $('#reg_email').val().trim();
+            const password = $('#reg_password').val();
+            const confirmPassword = $('#reg_confirmPassword').val();
+            const nickname = $('#reg_nickname').val().trim();
+            const agreeTerms = $('#agreeTerms').is(':checked');
+            
+            // 验证
+            const usernameError = validateUsername(username);
+            if (usernameError) {
+                showRegisterAlert(usernameError);
+                return;
+            }
+            
+            const emailError = validateEmail(email);
+            if (emailError) {
+                showRegisterAlert(emailError);
+                return;
+            }
+            
+            if (password.length < 6) {
+                showRegisterAlert('密码长度不能少于6位');
+                return;
+            }
+            
+            if (password !== confirmPassword) {
+                showRegisterAlert('两次输入的密码不一致');
+                return;
+            }
+            
+            if (!agreeTerms) {
+                showRegisterAlert('请阅读并同意用户协议和隐私政策');
+                return;
+            }
+            
+            // 禁用按钮
+            const registerBtn = $('#registerBtn');
+            const originalText = registerBtn.html();
+            registerBtn.prop('disabled', true);
+            registerBtn.html('<span class="spinner-border spinner-border-sm"></span>注册中...');
+            
+            try {
+                // 发送注册请求
+                const response = await $.ajax({
+                    url: `${API_BASE_URL}/auth/register`,
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        username: username,
+                        email: email,
+                        password: password,
+                        nickname: nickname || username
+                    })
+                });
+                
+                if (response.success) {
+                    showRegisterAlert('注册成功！正在切换到登录...', 'success');
+                    
+                    // 重置表单
+                    $('#registerForm')[0].reset();
+                    
+                    // 切换到登录面板并填充用户名
+                    setTimeout(() => {
+                        $('#registerPanel').fadeOut(250, function(){
+                            $('#username').val(username);
+                            $('#loginPanel').fadeIn(250);
+                        });
+                    }, 1500);
+                } else {
+                    showRegisterAlert(response.message || '注册失败');
+                    registerBtn.prop('disabled', false);
+                    registerBtn.html(originalText);
+                }
+                
+            } catch (error) {
+                console.error('Register error:', error);
+                
+                let errorMessage = '注册失败，请稍后重试';
+                
+                if (error.responseJSON && error.responseJSON.detail) {
+                    errorMessage = error.responseJSON.detail;
+                } else if (error.statusText) {
+                    errorMessage = error.statusText;
+                }
+                
+                showRegisterAlert(errorMessage);
+                
+                // 恢复按钮
+                registerBtn.prop('disabled', false);
+                registerBtn.html(originalText);
+            }
+        });
+    </script>
+</body>
+</html>
+

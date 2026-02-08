@@ -1,0 +1,39 @@
+nohup: ignoring input
+INFO:     Will watch for changes in these directories: ['/home/devbox/project/traffic-project']
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     Started reloader process [3977] using WatchFiles
+🚀 启动智能交通流预测API服务...
+   访问: http://127.0.0.1:8000
+   文档: http://127.0.0.1:8000/docs
+   按 Ctrl+C 停止服务
+
+INFO:     Started server process [3990]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+🔄 正在初始化数据库连接...
+✅ 数据库连接初始化成功
+🔄 正在加载预测模型...
+✅ 预测器初始化完成
+   模型类型: LSTM
+   设备: cpu
+✅ 模型加载成功
+INFO:     172.16.0.119:4128 - "GET / HTTP/1.1" 200 OK
+INFO:     172.16.0.126:58492 - "GET / HTTP/1.1" 200 OK
+INFO:     172.16.0.126:58492 - "GET / HTTP/1.1" 200 OK
+INFO:     172.16.0.77:50002 - "GET / HTTP/1.1" 200 OK
+INFO:     172.16.0.126:58492 - "GET / HTTP/1.1" 200 OK
+INFO:     172.16.0.126:58492 - "GET / HTTP/1.1" 200 OK
+INFO:     172.16.0.107:14556 - "GET / HTTP/1.1" 200 OK
+INFO:     172.16.0.107:50002 - "GET / HTTP/1.1" 200 OK
+INFO:     172.16.0.127:2088 - "GET / HTTP/1.1" 200 OK
+INFO:     172.16.0.108:26854 - "GET / HTTP/1.1" 200 OK
+INFO:     172.16.0.108:26854 - "GET / HTTP/1.1" 200 OK
+WARNING:  WatchFiles detected changes in 'src/api/routes/auth.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [3990]
+WARNING:  WatchFiles detected changes in 'scripts/test_welcome_notification.py'. Reloading...
+INFO:     Started server process [5163]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.

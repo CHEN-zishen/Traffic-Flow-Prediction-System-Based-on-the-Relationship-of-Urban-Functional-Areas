@@ -1,0 +1,164 @@
+# 数据配置文件
+
+# 数据集配置
+dataset:
+  name: "PeMS04"
+  description: "California PeMS Traffic Dataset"
+  source: "https://github.com/Davidham3/STSGCN"
+  
+  # 数据集属性
+  properties:
+    num_sensors: 307        # 传感器数量
+    num_timesteps: 16992    # 时间步数
+    time_interval: 5        # 时间间隔（分钟）
+    time_span: "2018-01 to 2018-02"  # 时间跨度
+    
+    # 特征说明
+    features:
+      - name: "flow"
+        description: "交通流量（vehicles/hour）"
+        unit: "vehicles/hour"
+      
+      - name: "speed"
+        description: "平均速度（km/h）"
+        unit: "km/h"
+      
+      - name: "occupancy"
+        description: "道路占有率"
+        unit: "ratio"
+
+# 数据下载配置
+download:
+  # 数据源URL
+  urls:
+    main: "https://github.com/Davidham3/STSGCN/raw/master/data/PeMS04/"
+    backup: "https://zenodo.org/record/5724362"
+  
+  # 下载文件列表
+  files:
+    - name: "pems04_flow.npy"
+      size: "41.2 MB"
+      md5: ""  # 可选的MD5校验
+    
+    - name: "pems04_speed.npy"
+      size: "41.2 MB"
+      md5: ""
+    
+    - name: "pems04_occupancy.npy"
+      size: "41.2 MB"
+      md5: ""
+  
+  # 下载选项
+  options:
+    timeout: 300          # 超时时间（秒）
+    retry_times: 3        # 重试次数
+    chunk_size: 8192      # 下载块大小（字节）
+    verify_ssl: true      # 验证SSL证书
+    show_progress: true   # 显示进度条
+
+# 数据预处理配置
+preprocessing:
+  # 缺失值处理
+  missing_values:
+    method: "interpolate"  # interpolate/forward_fill/backward_fill/mean
+    interpolate_method: "linear"  # linear/polynomial/spline
+    fill_limit: 10        # 最大填充长度
+  
+  # 异常值检测
+  outlier_detection:
+    enabled: true
+    method: "iqr"         # iqr/zscore/isolation_forest
+    threshold: 1.5        # IQR倍数或Z-score阈值
+    action: "clip"        # clip/remove/interpolate
+  
+  # 数据归一化
+  normalization:
+    method: "minmax"      # minmax/standard/robust
+    feature_range: [0, 1] # MinMaxScaler的范围
+    clip: true            # 是否裁剪超出范围的值
+  
+  # 特征工程
+  feature_engineering:
+    # 时间特征
+    time_features:
+      enabled: true
+      features:
+        - "hour_of_day"
+        - "day_of_week"
+        - "is_weekend"
+        - "is_holiday"
+    
+    # 统计特征
+    statistical_features:
+      enabled: false
+      window_sizes: [6, 12, 24]  # 滑动窗口大小
+      features:
+        - "mean"
+        - "std"
+        - "min"
+        - "max"
+    
+    # 拥堵状态标签
+    congestion_labels:
+      enabled: true
+      method: "speed_based"  # speed_based/flow_based/occupancy_based
+      thresholds:
+        clear: 60      # 畅通：速度 > 60
+        slow: 30       # 缓行：30 <= 速度 <= 60
+        # 拥堵：速度 < 30
+
+# 数据加载配置
+dataloader:
+  batch_size: 64
+  shuffle: true
+  num_workers: 4
+  pin_memory: true
+  drop_last: false
+  
+  # 预取配置
+  prefetch_factor: 2
+  persistent_workers: false
+
+# 数据验证
+validation:
+  # 数据完整性检查
+  check_nan: true
+  check_inf: true
+  check_shape: true
+  check_range: true
+  
+  # 数据质量阈值
+  quality_thresholds:
+    min_completeness: 0.95  # 最小数据完整率
+    max_outlier_ratio: 0.05 # 最大异常值比率
+
+# 数据可视化配置
+visualization:
+  enabled: true
+  
+  # 图表配置
+  plots:
+    time_series:
+      enabled: true
+      sample_sensors: [0, 50, 100, 150, 200, 250, 306]
+      time_range: "1week"  # 1day/1week/all
+    
+    distribution:
+      enabled: true
+      bins: 50
+      features: ["flow", "speed", "occupancy"]
+    
+    correlation:
+      enabled: true
+      method: "pearson"  # pearson/spearman
+    
+    heatmap:
+      enabled: true
+      sample_timesteps: 100
+  
+  # 导出配置
+  export:
+    format: "png"  # png/pdf/svg
+    dpi: 300
+    save_path: "data/processed/visualizations/"
+

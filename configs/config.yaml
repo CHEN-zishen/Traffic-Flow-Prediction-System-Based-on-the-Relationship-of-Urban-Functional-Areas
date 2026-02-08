@@ -1,0 +1,82 @@
+# 智能交通流预测系统 - 主配置文件
+
+app:
+  name: "智能交通流预测系统"
+  version: "1.0.0"
+  environment: "development"  # development/production
+  description: "基于深度学习的交通流预测系统"
+
+# API服务配置
+api:
+  host: "0.0.0.0"
+  port: 8000
+  reload: true  # 开发模式自动重载
+  workers: 1    # 工作进程数（生产环境建议4-8）
+  title: "交通流预测API"
+  version: "1.0.0"
+  debug: true
+
+# Web界面配置
+web:
+  host: "localhost"
+  port: 8501
+  theme: "light"  # light/dark
+  page_title: "智能交通流预测系统"
+  page_icon: "🚗"
+  layout: "wide"
+
+# 日志配置
+logging:
+  level: "INFO"  # DEBUG/INFO/WARNING/ERROR/CRITICAL
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  date_format: "%Y-%m-%d %H:%M:%S"
+  
+  # 文件日志
+  file:
+    enabled: true
+    path: "logs/app.log"
+    max_bytes: 10485760  # 10MB
+    backup_count: 5
+    encoding: "utf-8"
+  
+  # 控制台日志
+  console:
+    enabled: true
+    colorize: true
+
+# 路径配置
+paths:
+  # 数据路径
+  data_root: "data/"
+  data_raw: "data/raw/"
+  data_processed: "data/processed/"
+  
+  # 模型路径
+  models_root: "data/models/"
+  models_checkpoints: "data/models/checkpoints/"
+  models_best: "data/models/best/"
+  
+  # 日志路径
+  logs: "logs/"
+  logs_training: "logs/training/"
+  logs_api: "logs/api/"
+  
+  # 配置路径
+  configs: "configs/"
+
+# 系统配置
+system:
+  # 设备配置
+  device: "auto"  # auto/cpu/cuda
+  random_seed: 42
+  
+  # 性能配置
+  num_workers: 4  # 数据加载器工作进程数
+  pin_memory: true
+  
+  # 缓存配置
+  cache:
+    enabled: true
+    max_size: 100  # 缓存最大项数
+    ttl: 3600  # 缓存过期时间（秒）
+

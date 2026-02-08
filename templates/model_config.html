@@ -1,0 +1,1578 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>模型配置 - 智能交通流预测系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* 暗色主题（默认） */
+        body { 
+            background: #0f172a; 
+            color: #e2e8f0; 
+            min-height: 100vh; 
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+        .navbar { background:#0b1222; border-bottom:1px solid rgba(255,255,255,.08); transition: background 0.3s ease; }
+        
+        /* 亮色主题 */
+        body.light-theme { background: #f8fafc; color: #1e293b; }
+        body.light-theme .navbar { background:#ffffff; border-bottom:1px solid rgba(0,0,0,.08); }
+        body.light-theme .config-card { background:#ffffff; border:1px solid rgba(0,0,0,.08); }
+        body.light-theme .config-card-header { color:#1e293b; border-bottom:1px solid rgba(0,0,0,.06); }
+        body.light-theme .form-label { color:#475569; }
+        body.light-theme .form-control, body.light-theme .form-select, body.light-theme .form-range { 
+            background:#f1f5f9; border:1px solid rgba(0,0,0,.12); color:#1e293b; 
+        }
+        body.light-theme .model-option { border-color: rgba(0,0,0,.12); }
+        body.light-theme .model-option:hover { border-color: #3b82f6; background: rgba(59,130,246,.05); }
+        body.light-theme .model-option.selected { border-color: #3b82f6; background: rgba(59,130,246,.1); }
+        body.light-theme .weight-label span:first-child { color:#1e293b; }
+        body.light-theme .total-weight { color:#1e293b; }
+        body.light-theme .navbar-brand,
+        body.light-theme .btn-outline-light { color:#1e293b !important; border-color:#1e293b !important; }
+        body.light-theme .btn-outline-light:hover { background:rgba(0,0,0,.05); }
+        body.light-theme .text-muted { color:#64748b !important; }
+        
+        /* 主题切换按钮 */
+        .theme-toggle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+            border: 2px solid rgba(255,255,255,0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-right: 12px;
+        }
+        
+        .theme-toggle:hover {
+            background: rgba(255,255,255,0.2);
+            transform: scale(1.1);
+            box-shadow: 0 0 15px rgba(255,255,255,0.3);
+        }
+        
+        .theme-toggle i {
+            color: #fbbf24;
+            font-size: 18px;
+            transition: all 0.3s ease;
+        }
+        
+        body.light-theme .theme-toggle {
+            background: rgba(0,0,0,0.05);
+            border-color: rgba(0,0,0,0.1);
+        }
+        
+        body.light-theme .theme-toggle:hover {
+            background: rgba(0,0,0,0.1);
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        }
+        
+        body.light-theme .theme-toggle i {
+            color: #1e293b;
+        }
+        
+        /* 导航按钮美化 */
+        .nav-btn {
+            padding: 8px 18px !important;
+            border-radius: 10px !important;
+            font-weight: 600 !important;
+            font-size: 14px !important;
+            transition: all 0.3s ease !important;
+            border: 2px solid transparent !important;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .nav-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            transform: translate(-50%, -50%);
+            transition: width 0.4s, height 0.4s;
+        }
+        
+        .nav-btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+        
+        .nav-btn i {
+            margin-right: 6px;
+            transition: transform 0.3s ease;
+        }
+        
+        .nav-btn:hover i {
+            transform: scale(1.15);
+        }
+        
+        .nav-btn-home {
+            background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%) !important;
+            box-shadow: 0 2px 8px rgba(236, 72, 153, 0.3);
+        }
+        
+        .nav-btn-home:hover {
+            box-shadow: 0 4px 15px rgba(236, 72, 153, 0.5);
+            transform: translateY(-2px);
+        }
+        
+        .nav-btn-input {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+        }
+        
+        .nav-btn-input:hover {
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.5);
+            transform: translateY(-2px);
+        }
+        
+        .nav-btn-history {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+        }
+        
+        .nav-btn-history:hover {
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.5);
+            transform: translateY(-2px);
+        }
+        
+        .nav-btn-outline {
+            background: rgba(255,255,255,0.05) !important;
+            border: 2px solid rgba(255,255,255,0.2) !important;
+            color: #e2e8f0 !important;
+        }
+        
+        .nav-btn-outline:hover {
+            background: rgba(255,255,255,0.1) !important;
+            border-color: rgba(255,255,255,0.4) !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255,255,255,0.15);
+        }
+        
+        body.light-theme .nav-btn-outline {
+            background: rgba(0,0,0,0.03) !important;
+            border-color: rgba(0,0,0,0.15) !important;
+            color: #1e293b !important;
+        }
+        
+        body.light-theme .nav-btn-outline:hover {
+            background: rgba(0,0,0,0.08) !important;
+            border-color: rgba(0,0,0,0.25) !important;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .container-main { max-width: 900px; margin: 40px auto; padding: 0 20px; }
+        
+        .config-card { 
+            background:#0b1222; 
+            border:1px solid rgba(255,255,255,.08); 
+            border-radius:12px; 
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+        
+        .config-card-header {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(255,255,255,.06);
+        }
+        
+        .form-label { color:#cbd5e1; font-weight: 500; margin-bottom: 8px; }
+        .form-control, .form-select, .form-range { 
+            background:#0f1a33; 
+            border:1px solid rgba(255,255,255,.12); 
+            color:#e2e8f0; 
+        }
+        .form-control:focus, .form-select:focus { 
+            border-color:#3b82f6; 
+            box-shadow: 0 0 0 .2rem rgba(59,130,246,.25);
+            background:#0f1a33; 
+            color:#e2e8f0; 
+        }
+        
+        .form-range {
+            height: 8px;
+            border-radius: 4px;
+        }
+        
+        .form-range::-webkit-slider-thumb {
+            background: #3b82f6;
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .form-range::-moz-range-thumb {
+            background: #3b82f6;
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .weight-control {
+            margin-bottom: 20px;
+        }
+        
+        .weight-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        
+        .weight-value {
+            color: #3b82f6;
+            font-weight: 600;
+        }
+        
+        /* 敏感度指标样式 */
+        .sensitivity-indicator {
+            margin-top: 24px;
+            padding: 20px;
+            background: rgba(59,130,246,.08);
+            border-radius: 12px;
+            border: 1px solid rgba(59,130,246,.2);
+        }
+        
+        .sensitivity-label {
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #e2e8f0;
+            font-size: 15px;
+        }
+        
+        .sensitivity-bar-container {
+            position: relative;
+            height: 25px;
+            margin-bottom: 16px;
+        }
+        
+        .sensitivity-bar-background {
+            display: flex;
+            height: 100%;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        
+        .sensitivity-zone {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            position: relative;
+            opacity: 0.7;
+        }
+        
+        .sensitivity-zone.active {
+            opacity: 1;
+            box-shadow: 0 0 20px currentColor, inset 0 0 15px rgba(255,255,255,0.3);
+            transform: scale(1.02);
+            z-index: 1;
+            font-size: 15px;
+        }
+        
+        .sensitivity-zone.conservative {
+            background: linear-gradient(135deg, #eab308 0%, #f59e0b 100%);
+            color: white;
+        }
+        
+        .sensitivity-zone.conservative.active {
+            box-shadow: 0 0 25px #f59e0b, inset 0 0 20px rgba(255,255,255,0.4);
+        }
+        
+        .sensitivity-zone.moderate {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            color: white;
+        }
+        
+        .sensitivity-zone.moderate.active {
+            box-shadow: 0 0 25px #22c55e, inset 0 0 20px rgba(255,255,255,0.4);
+        }
+        
+        .sensitivity-zone.aggressive {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+        }
+        
+        .sensitivity-zone.aggressive.active {
+            box-shadow: 0 0 25px #ef4444, inset 0 0 20px rgba(255,255,255,0.4);
+        }
+        
+        .sensitivity-pointer {
+            position: absolute;
+            top: -15px;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-top: 12px solid #3b82f6;
+            transition: left 0.3s ease;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+            z-index: 10;
+        }
+        
+        .sensitivity-pointer::after {
+            content: '';
+            position: absolute;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 3px;
+            height: 16px;
+            background: #3b82f6;
+            box-shadow: 0 0 8px rgba(59,130,246,0.6);
+        }
+        
+        .sensitivity-value-display {
+            text-align: center;
+            font-size: 16px;
+            font-weight: 700;
+            color: #e2e8f0;
+            padding: 8px;
+            border-radius: 6px;
+            background: rgba(59,130,246,.15);
+        }
+        
+        body.light-theme .sensitivity-indicator {
+            background: rgba(59,130,246,.06);
+            border-color: rgba(59,130,246,.2);
+        }
+        
+        body.light-theme .sensitivity-label {
+            color: #1e293b;
+        }
+        
+        body.light-theme .sensitivity-value-display {
+            color: #1e293b;
+            background: rgba(59,130,246,.12);
+        }
+        
+        .btn-primary { background:#2563eb; border:none; font-weight:600; }
+        .btn-primary:hover { background:#1d4ed8; }
+        .btn-outline-light:hover { background: rgba(255,255,255,.1); }
+        .btn-warning { background:#f59e0b; border:none; }
+        .btn-warning:hover { background:#d97706; }
+        
+        .model-option {
+            padding: 16px;
+            border: 2px solid rgba(255,255,255,.12);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 12px;
+        }
+        
+        .model-option:hover {
+            border-color: #3b82f6;
+            background: rgba(59,130,246,.05);
+        }
+        
+        .model-option.selected {
+            border-color: #3b82f6;
+            background: rgba(59,130,246,.1);
+        }
+        
+        .model-option.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .model-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+        
+        .model-badge.available {
+            background: rgba(34,197,94,.2);
+            color: #22c55e;
+        }
+        
+        .model-badge.developing {
+            background: rgba(251,191,36,.2);
+            color: #fbbf24;
+        }
+        
+        .model-badge.self-developed {
+            background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 50%, #f59e0b 100%);
+            color: #ffffff;
+            font-weight: 700;
+            box-shadow: 0 2px 8px rgba(236, 72, 153, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            animation: shine 3s infinite;
+        }
+        
+        @keyframes shine {
+            0%, 100% { 
+                box-shadow: 0 2px 8px rgba(236, 72, 153, 0.4);
+            }
+            50% { 
+                box-shadow: 0 4px 16px rgba(236, 72, 153, 0.6), 0 0 20px rgba(139, 92, 246, 0.3);
+            }
+        }
+        
+        .user-avatar-nav {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+        
+        .user-avatar-nav:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.5);
+        }
+        
+        .user-avatar-nav img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        
+        .dropdown-menu {
+            background: linear-gradient(145deg, #0d1829 0%, #0b1222 100%);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: 12px;
+            padding: 8px;
+            margin-top: 8px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            min-width: 200px;
+        }
+        
+        .dropdown-item {
+            color: #e2e8f0;
+            padding: 10px 16px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+        }
+        
+        .dropdown-item i {
+            width: 20px;
+            margin-right: 10px;
+            transition: all 0.2s ease;
+        }
+        
+        .dropdown-item:hover {
+            transform: translateX(3px);
+        }
+        
+        /* 个人中心 - 绿色 */
+        .menu-profile i {
+            color: #22c55e;
+        }
+        
+        .menu-profile:hover {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(16, 185, 129, 0.15) 100%);
+            color: #fff;
+        }
+        
+        .menu-profile:hover i {
+            color: #4ade80;
+        }
+        
+        /* 模型配置 - 黄色 */
+        .menu-config i {
+            color: #eab308;
+        }
+        
+        .menu-config:hover {
+            background: linear-gradient(135deg, rgba(234, 179, 8, 0.15) 0%, rgba(245, 158, 11, 0.15) 100%);
+            color: #fff;
+        }
+        
+        .menu-config:hover i {
+            color: #fbbf24;
+        }
+        /* 消息中心 - 蓝色 */
+        .menu-message i {
+            color: #60a5fa;
+        }
+        
+        .menu-message:hover {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(37, 99, 235, 0.15) 100%);
+            color: #fff;
+        }
+        
+        .menu-message:hover i {
+            color: #60a5fa;
+        }
+        
+        .unread-badge {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            background: #ef4444;
+            color: white;
+            font-size: 10px;
+            padding: 2px 5px;
+            border-radius: 10px;
+            min-width: 16px;
+            text-align: center;
+        }
+        
+
+        
+        .dropdown-divider {
+            border-color: rgba(102, 126, 234, 0.2) !important;
+            margin: 8px 0;
+        }
+        
+        /* 退出登录 - 红色 */
+        .menu-logout {
+            color: #fca5a5;
+        }
+        
+        .menu-logout i {
+            color: #ef4444;
+        }
+        
+        .menu-logout:hover {
+            background: rgba(239, 68, 68, 0.15);
+            color: #fef2f2;
+        }
+        
+        .menu-logout:hover i {
+            color: #f87171;
+        }
+        
+        .form-check-input:checked {
+            background-color: #3b82f6;
+            border-color: #3b82f6;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/"><i class="fas fa-traffic-light me-2"></i>智能交通流预测系统</a>
+            <div class="d-flex gap-2 align-items-center">
+                <a href="/" class="btn btn-sm nav-btn nav-btn-outline nav-btn-home">
+                    <i class="fas fa-home"></i>首页
+                </a>
+                <a href="/input" class="btn btn-sm nav-btn nav-btn-outline nav-btn-input">
+                    <i class="fas fa-keyboard"></i>数据输入
+                </a>
+                <a href="/history?from=model-config" class="btn btn-sm nav-btn nav-btn-outline nav-btn-history">
+                    <i class="fas fa-history"></i>历史数据
+                </a>
+                
+                <!-- 主题切换按钮 -->
+                <div class="theme-toggle" id="themeToggle" title="切换主题">
+                    <i class="fas fa-moon"></i>
+                </div>
+                
+                <div class="dropdown">
+                    <div class="user-avatar-nav" data-bs-toggle="dropdown" aria-expanded="false" id="navAvatar">
+                        <span id="navAvatarText">U</span>
+                    </div>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item menu-profile" href="/profile"><i class="fas fa-user me-2"></i>个人中心</a></li>
+                        <li><a class="dropdown-item menu-config" href="/model-config"><i class="fas fa-cog me-2"></i>模型配置</a></li>
+                        <li><a class="dropdown-item menu-message" href="#" id="messageCenterBtn" style="position: relative;">
+                            <i class="fas fa-bell me-2"></i>消息中心
+                            <span class="unread-badge" id="unreadBadge" style="display: none;">0</span>
+                        </a></li>
+                        <li><hr class="dropdown-divider" style="border-color: rgba(255,255,255,.1);"></li>
+                        <li><a class="dropdown-item menu-logout" href="#" id="logoutBtn"><i class="fas fa-sign-out-alt me-2"></i>退出登录</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-main">
+        <div class="text-center mb-4">
+            <h3 class="fw-bold">模型配置</h3>
+            <div class="text-muted">自定义您的交通流预测模型参数</div>
+        </div>
+
+        <!-- 模型选择 -->
+        <div class="config-card">
+            <div class="config-card-header">
+                <i class="fas fa-brain me-2"></i>模型选择
+            </div>
+            
+            <div class="model-option" data-model="ml-hgstn" id="modelMlHgstn">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <h6 class="mb-1">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            ML-HGSTN (多级超图驱动时空网络)
+                            <span class="model-badge available">可用</span>
+                            <span class="model-badge self-developed">自主研发</span>
+                        </h6>
+                        <small class="text-muted">建模高阶空间交互与时空依赖，结合多级超图卷积与时序注意力，适用于复杂城市交通的高精度预测。</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="model-option" data-model="lstm" id="modelLstm">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <h6 class="mb-1">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            LSTM (长短期记忆网络)
+                            <span class="model-badge available">可用</span>
+                        </h6>
+                        <small class="text-muted">适用于长时间序列预测，能够捕捉长期依赖关系</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="model-option" data-model="gru" id="modelGru">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <h6 class="mb-1">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            GRU (门控循环单元)
+                            <span class="model-badge available">可用</span>
+                        </h6>
+                        <small class="text-muted">计算效率更高，适用于中短期预测场景</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="model-option disabled" data-model="transformer">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <h6 class="mb-1">
+                            <i class="fas fa-clock text-warning me-2"></i>
+                            Transformer
+                            <span class="model-badge developing">开发中</span>
+                        </h6>
+                        <small class="text-muted">基于注意力机制，适用于复杂场景的多变量预测</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="model-option disabled" data-model="tcn">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <h6 class="mb-1">
+                            <i class="fas fa-clock text-warning me-2"></i>
+                            TCN (时序卷积网络)
+                            <span class="model-badge developing">开发中</span>
+                        </h6>
+                        <small class="text-muted">并行计算能力强，适用于大规模实时预测</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 预测敏感度配置 -->
+        <div class="config-card">
+            <div class="config-card-header">
+                <i class="fas fa-sliders-h me-2"></i>预测敏感度配置
+            </div>
+            
+            <p class="text-muted mb-3">
+                <i class="fas fa-info-circle me-1"></i>
+                调整各因素的敏感度，决定预测的保守程度或激进程度
+            </p>
+            
+            <div class="weight-control">
+                <div class="weight-label">
+                    <span><i class="fas fa-cloud-sun me-2"></i>天气因素</span>
+                    <span class="weight-value" id="weatherSensitivityValue">0.50</span>
+                </div>
+                <input type="range" class="form-range sensitivity-slider" id="weatherSensitivity" min="0" max="1" step="0.01" value="0.50">
+            </div>
+            
+            <div class="weight-control">
+                <div class="weight-label">
+                    <span><i class="fas fa-clock me-2"></i>时间段因素</span>
+                    <span class="weight-value" id="timeSensitivityValue">0.50</span>
+                </div>
+                <input type="range" class="form-range sensitivity-slider" id="timeSensitivity" min="0" max="1" step="0.01" value="0.50">
+            </div>
+            
+            <div class="weight-control">
+                <div class="weight-label">
+                    <span><i class="fas fa-building me-2"></i>城市功能区因素</span>
+                    <span class="weight-value" id="districtSensitivityValue">0.50</span>
+                </div>
+                <input type="range" class="form-range sensitivity-slider" id="districtSensitivity" min="0" max="1" step="0.01" value="0.50">
+            </div>
+            
+            <div class="weight-control">
+                <div class="weight-label">
+                    <span><i class="fas fa-ellipsis-h me-2"></i>其他因素</span>
+                    <span class="weight-value" id="otherSensitivityValue">0.50</span>
+                </div>
+                <input type="range" class="form-range sensitivity-slider" id="otherSensitivity" min="0" max="1" step="0.01" value="0.50">
+            </div>
+            
+            <!-- 敏感度指标 -->
+            <div class="sensitivity-indicator" id="sensitivityIndicator">
+                <div class="sensitivity-label">预测模式：</div>
+                <div class="sensitivity-bar-container">
+                    <div class="sensitivity-bar-background">
+                        <div class="sensitivity-zone conservative">保守预测</div>
+                        <div class="sensitivity-zone moderate">适中预测</div>
+                        <div class="sensitivity-zone aggressive">激进预测</div>
+                    </div>
+                    <div class="sensitivity-pointer" id="sensitivityPointer"></div>
+                </div>
+                <div class="sensitivity-value-display" id="sensitivityDisplay">适中预测 (50%)</div>
+            </div>
+        </div>
+
+        <!-- 高级选项 -->
+        <div class="config-card">
+            <div class="config-card-header">
+                <i class="fas fa-cogs me-2"></i>高级选项
+            </div>
+            
+            <div class="form-check form-switch mb-3">
+                <input class="form-check-input" type="checkbox" id="useGpu">
+                <label class="form-check-label" for="useGpu">
+                    <i class="fas fa-microchip me-2"></i>使用 GPU 加速
+                    <small class="text-muted d-block">启用后将使用GPU进行模型推理，提升预测速度</small>
+                </label>
+            </div>
+            
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="multiPredict">
+                <label class="form-check-label" for="multiPredict">
+                    <i class="fas fa-layer-group me-2"></i>多次预测取平均
+                    <small class="text-muted d-block">对同一输入进行多次预测并取平均值，提高预测稳定性</small>
+                </label>
+            </div>
+        </div>
+
+        <!-- 操作按钮 -->
+        <div class="d-flex gap-2 justify-content-center">
+            <button class="btn btn-warning" id="resetBtn">
+                <i class="fas fa-undo me-2"></i>重置为默认值
+            </button>
+            <button class="btn btn-primary" id="saveConfigBtn">
+                <i class="fas fa-save me-2"></i>保存配置
+            </button>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 生产环境地址
+        const API_BASE_URL = 'https://yjwkusxabeto.sealoshzh.site';  // 后端公网地址
+        
+        // 辅助函数：处理头像URL
+        function getFullAvatarUrl(avatarUrl) {
+            if (!avatarUrl) return null;
+            // 如果已经是完整URL，直接返回
+            if (avatarUrl.startsWith('http://') || avatarUrl.startsWith('https://')) {
+                return avatarUrl;
+            }
+            // 如果是相对路径，拼接后端地址
+            return API_BASE_URL + avatarUrl;
+        }
+
+        function getAuthToken(){
+            return localStorage.getItem('token') || sessionStorage.getItem('token');
+        }
+
+        function getUserInfo(){
+            const userStr = localStorage.getItem('user') || sessionStorage.getItem('user');
+            if (userStr) {
+                try {
+                    return JSON.parse(userStr);
+                } catch (e) {
+                    return null;
+                }
+            }
+            return null;
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            sessionStorage.removeItem('token');
+            localStorage.removeItem('user');
+            sessionStorage.removeItem('user');
+            // 标记为主动退出登录
+            sessionStorage.setItem('manualLogout', 'true');
+            window.location.href = '/login';
+        }
+
+        function updateSensitivityIndicator() {
+            const weather = parseFloat($('#weatherSensitivity').val());
+            const time = parseFloat($('#timeSensitivity').val());
+            const district = parseFloat($('#districtSensitivity').val());
+            const other = parseFloat($('#otherSensitivity').val());
+            
+            // 计算平均敏感度
+            const avgSensitivity = (weather + time + district + other) / 4;
+            
+            // 更新各个敏感度值显示
+            $('#weatherSensitivityValue').text(weather.toFixed(2));
+            $('#timeSensitivityValue').text(time.toFixed(2));
+            $('#districtSensitivityValue').text(district.toFixed(2));
+            $('#otherSensitivityValue').text(other.toFixed(2));
+            
+            // 更新敏感度指针位置（0-100%）
+            const percentage = avgSensitivity * 100;
+            $('#sensitivityPointer').css('left', percentage + '%');
+            
+            // 确定预测模式和显示文本
+            let mode = '';
+            let modeText = '';
+            if (avgSensitivity < 0.33) {
+                mode = 'conservative';
+                modeText = '保守预测';
+            } else if (avgSensitivity < 0.67) {
+                mode = 'moderate';
+                modeText = '适中预测';
+            } else {
+                mode = 'aggressive';
+                modeText = '激进预测';
+            }
+            
+            // 移除所有区域的active类
+            $('.sensitivity-zone').removeClass('active');
+            // 给当前区域添加active类（发光效果）
+            $(`.sensitivity-zone.${mode}`).addClass('active');
+            
+            $('#sensitivityDisplay').text(`${modeText} (${percentage.toFixed(0)}%)`);
+        }
+
+        async function loadModelConfig() {
+            const token = getAuthToken();
+            if (!token) {
+                window.location.href = '/login';
+                return;
+            }
+
+            try {
+                const response = await $.ajax({
+                    url: `${API_BASE_URL}/profile/model-config`,
+                    method: 'GET',
+                    data: { token }
+                });
+
+                if (response.success) {
+                    const config = response.data;
+                    
+                    // 设置模型选择
+                    $('.model-option').removeClass('selected');
+                    $(`.model-option[data-model="${config.model_type}"]`).addClass('selected');
+                    
+                    // 设置敏感度（使用新字段名，兼容旧字段名）
+                    $('#weatherSensitivity').val(config.weather_sensitivity || config.weather_weight || 0.5);
+                    $('#timeSensitivity').val(config.time_sensitivity || config.time_weight || 0.5);
+                    $('#districtSensitivity').val(config.district_sensitivity || config.district_weight || 0.5);
+                    $('#otherSensitivity').val(config.other_sensitivity || config.other_weight || 0.5);
+                    
+                    // 设置高级选项
+                    $('#useGpu').prop('checked', config.use_gpu);
+                    $('#multiPredict').prop('checked', config.multi_predict);
+                    
+                    updateSensitivityIndicator();
+                }
+            } catch (error) {
+                console.error('加载模型配置失败:', error);
+                alert('加载模型配置失败');
+            }
+        }
+
+        async function loadUserAvatar() {
+            const user = getUserInfo();
+            if (user) {
+                const avatarInitial = (user.nickname || user.username || 'U')[0].toUpperCase();
+                const $navAvatar = $('#navAvatar');
+                
+                if (user.avatar) {
+                    const fullAvatarUrl = getFullAvatarUrl(user.avatar);
+                    // 保留 dropdown 属性，只更新内容
+                    $navAvatar.html(`<img src="${fullAvatarUrl}" alt="Avatar">`);
+                    // 确保 dropdown 属性保留
+                    $navAvatar.attr('data-bs-toggle', 'dropdown');
+                    $navAvatar.attr('aria-expanded', 'false');
+                } else {
+                    $('#navAvatarText').text(avatarInitial);
+                }
+            }
+        }
+
+        // 模型选择
+        $('.model-option:not(.disabled)').on('click', function() {
+            $('.model-option').removeClass('selected');
+            $(this).addClass('selected');
+        });
+
+        // 敏感度滑块变化
+        $('#weatherSensitivity, #timeSensitivity, #districtSensitivity, #otherSensitivity').on('input', function() {
+            updateSensitivityIndicator();
+        });
+
+        // 保存配置
+        $('#saveConfigBtn').on('click', async function() {
+            const weather = parseFloat($('#weatherSensitivity').val());
+            const time = parseFloat($('#timeSensitivity').val());
+            const district = parseFloat($('#districtSensitivity').val());
+            const other = parseFloat($('#otherSensitivity').val());
+            
+            const selectedModel = $('.model-option.selected').data('model');
+            if (!selectedModel) {
+                alert('请选择一个模型');
+                return;
+            }
+            
+            const token = getAuthToken();
+            const config = {
+                model_type: selectedModel,
+                weather_sensitivity: weather,
+                time_sensitivity: time,
+                district_sensitivity: district,
+                other_sensitivity: other,
+                use_gpu: $('#useGpu').is(':checked'),
+                multi_predict: $('#multiPredict').is(':checked')
+            };
+            
+            try {
+                const response = await $.ajax({
+                    url: `${API_BASE_URL}/profile/model-config?token=${token}`,
+                    method: 'PUT',
+                    contentType: 'application/json',
+                    data: JSON.stringify(config)
+                });
+                
+                if (response.success) {
+                    alert('模型配置保存成功');
+                }
+            } catch (error) {
+                alert(error.responseJSON?.detail || '保存失败');
+            }
+        });
+
+        // 重置配置
+        $('#resetBtn').on('click', async function() {
+            if (!confirm('确定要重置为默认配置吗？')) {
+                return;
+            }
+            
+            const token = getAuthToken();
+            
+            try {
+                const response = await $.ajax({
+                    url: `${API_BASE_URL}/profile/model-config/reset?token=${token}`,
+                    method: 'POST'
+                });
+                
+                if (response.success) {
+                    alert('已重置为默认配置');
+                    await loadModelConfig();
+                }
+            } catch (error) {
+                alert(error.responseJSON?.detail || '重置失败');
+            }
+        });
+
+        // 退出登录
+        $('#logoutBtn').on('click', function(e) {
+            e.preventDefault();
+            if (confirm('确定要退出登录吗？')) {
+                logout();
+            }
+        });
+
+        // 主题切换
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            if (savedTheme === 'light') {
+                $('body').addClass('light-theme');
+                $('#themeToggle i').removeClass('fa-moon').addClass('fa-sun');
+            }
+        }
+
+        $('#themeToggle').on('click', function() {
+            $('body').toggleClass('light-theme');
+            const isLight = $('body').hasClass('light-theme');
+            
+            if (isLight) {
+                $('#themeToggle i').removeClass('fa-moon').addClass('fa-sun');
+                localStorage.setItem('theme', 'light');
+            } else {
+                $('#themeToggle i').removeClass('fa-sun').addClass('fa-moon');
+                localStorage.setItem('theme', 'dark');
+            }
+        });
+
+        // 页面加载时
+        $(document).ready(function() {
+            initTheme();
+            loadUserAvatar();
+            loadModelConfig();
+        });
+    </script>
+
+    <!-- 消息中心模态框 -->
+    <div class="modal fade" id="messageCenterModal" tabindex="-1" aria-labelledby="messageCenterModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content" style="background: #0f172a; color: #e2e8f0; border: 1px solid rgba(255,255,255,0.1);">
+                <div class="modal-header" style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+                    <h5 class="modal-title" id="messageCenterModalLabel">
+                        <i class="fas fa-bell me-2"></i>消息中心
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- 标签页 -->
+                    <ul class="nav nav-tabs mb-3" id="messageTab" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="announcement-tab" data-bs-toggle="tab" data-bs-target="#announcement" type="button" role="tab" aria-controls="announcement" aria-selected="true">
+                                <i class="fas fa-bullhorn me-2"></i>系统公告
+                                <span class="badge bg-danger ms-1" id="announcementBadge" style="display: none;">0</span>
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="notification-tab" data-bs-toggle="tab" data-bs-target="#notification" type="button" role="tab" aria-controls="notification" aria-selected="false">
+                                <i class="fas fa-envelope me-2"></i>用户通知
+                                <span class="badge bg-danger ms-1" id="notificationBadge" style="display: none;">0</span>
+                            </button>
+                        </li>
+                    </ul>
+                    
+                    <div class="tab-content" id="messageTabContent">
+                        <!-- 系统公告 -->
+                        <div class="tab-pane fade show active" id="announcement" role="tabpanel" aria-labelledby="announcement-tab">
+                            <div id="announcementList" class="accordion">
+                                <div class="text-center py-4">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">加载中...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 用户通知 -->
+                        <div class="tab-pane fade" id="notification" role="tabpanel" aria-labelledby="notification-tab">
+                            <div id="notificationList" class="accordion">
+                                <div class="text-center py-4">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">加载中...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        /* 消息中心样式 */
+        .nav-tabs .nav-link {
+            color: #94a3b8;
+            border: none;
+            border-bottom: 2px solid transparent;
+            background: none;
+        }
+        
+        .nav-tabs .nav-link:hover {
+            color: #e2e8f0;
+            border-color: rgba(255,255,255,0.2);
+        }
+        
+        .nav-tabs .nav-link.active {
+            color: #60a5fa;
+            background: none;
+            border-bottom: 2px solid #60a5fa;
+        }
+        
+        .message-item {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+        
+        .message-item:hover {
+            background: rgba(255,255,255,0.08);
+            border-color: rgba(96,165,250,0.3);
+        }
+        
+        .message-header {
+            padding: 15px 20px;
+            transition: background 0.2s ease;
+        }
+        
+        .message-header:hover {
+            background: rgba(255,255,255,0.03);
+        }
+        
+        .message-body {
+            padding: 0 20px 15px 20px;
+        }
+        
+        .message-item.unread {
+            background: rgba(59,130,246,0.1);
+            border-left: 3px solid #3b82f6;
+        }
+        
+        .message-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #e2e8f0;
+            margin-bottom: 10px;
+        }
+        
+        .message-content {
+            color: #cbd5e1;
+            line-height: 1.8;
+            white-space: pre-wrap;
+        }
+        
+        .message-time {
+            color: #64748b;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        
+        .message-icon {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: #ef4444;
+            border-radius: 50%;
+            margin-right: 8px;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .collapse-icon {
+            transition: transform 0.3s ease;
+            display: inline-block;
+        }
+        
+        .rotate-180 {
+            transform: rotate(180deg);
+        }
+        
+        /* 亮色主题适配 */
+        body.light-theme .modal-content {
+            background: #ffffff !important;
+            color: #1e293b !important;
+        }
+        
+        body.light-theme .modal-header {
+            border-bottom-color: rgba(0,0,0,0.1) !important;
+        }
+        
+        body.light-theme .nav-tabs .nav-link {
+            color: #64748b;
+        }
+        
+        body.light-theme .nav-tabs .nav-link.active {
+            color: #3b82f6;
+            border-bottom-color: #3b82f6;
+        }
+        
+        body.light-theme .message-item {
+            background: rgba(0,0,0,0.03);
+            border-color: rgba(0,0,0,0.1);
+        }
+        
+        body.light-theme .message-item:hover {
+            background: rgba(0,0,0,0.05);
+            border-color: rgba(59,130,246,0.3);
+        }
+        
+        body.light-theme .message-item.unread {
+            background: rgba(59,130,246,0.08);
+            border-left-color: #3b82f6;
+        }
+        
+        body.light-theme .message-header:hover {
+            background: rgba(0,0,0,0.02);
+        }
+        
+        body.light-theme .message-title {
+            color: #1e293b;
+        }
+        
+        body.light-theme .message-content {
+            color: #475569;
+        }
+        
+        body.light-theme .message-time {
+            color: #64748b;
+        }
+        
+        body.light-theme .collapse-icon {
+            color: #64748b !important;
+        }
+        
+        body.light-theme .text-muted {
+            color: #94a3b8 !important;
+        }
+    </style>
+
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script>
+        // 消息中心功能
+        let messageCenterModal;
+        let allAnnouncements = [];
+        let allNotifications = [];
+        
+        // 获取已读公告ID列表
+        function getReadAnnouncementIds() {
+            const stored = localStorage.getItem('readAnnouncementIds');
+            return stored ? JSON.parse(stored) : [];
+        }
+        
+        // 检查通知是否已触发过礼花
+        function hasShownConfetti(notificationId) {
+            const shown = localStorage.getItem('confettiShown_' + notificationId);
+            return shown === 'true';
+        }
+        
+        // 标记通知已触发礼花
+        function markConfettiShown(notificationId) {
+            localStorage.setItem('confettiShown_' + notificationId, 'true');
+        }
+        
+        // 触发礼花动画
+        function showConfetti() {
+            const duration = 6 * 1000; // 6秒
+            const animationEnd = Date.now() + duration;
+            const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 9999 };
+            
+            function randomInRange(min, max) {
+                return Math.random() * (max - min) + min;
+            }
+            
+            const interval = setInterval(function() {
+                const timeLeft = animationEnd - Date.now();
+                
+                if (timeLeft <= 0) {
+                    return clearInterval(interval);
+                }
+                
+                const particleCount = 50 * (timeLeft / duration);
+                
+                // 从左侧发射
+                confetti(Object.assign({}, defaults, {
+                    particleCount,
+                    origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 }
+                }));
+                
+                // 从右侧发射
+                confetti(Object.assign({}, defaults, {
+                    particleCount,
+                    origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 }
+                }));
+            }, 250);
+        }
+        
+        // 标记公告为已读
+        function markAnnouncementAsRead(announcementId) {
+            const readIds = getReadAnnouncementIds();
+            if (!readIds.includes(announcementId)) {
+                readIds.push(announcementId);
+                localStorage.setItem('readAnnouncementIds', JSON.stringify(readIds));
+                updateUnreadBadges();
+            }
+        }
+        
+        // 标记通知为已读（调用API）
+        async function markNotificationAsRead(notificationId) {
+            const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+            if (!token) {
+                console.error('未找到token');
+                return Promise.reject('未找到token');
+            }
+            
+            try {
+                const response = await $.ajax({
+                    url: `${API_BASE_URL}/message/notifications/${notificationId}/read?token=${token}`,
+                    method: 'POST'
+                });
+                console.log('标记通知已读API响应:', response);
+                
+                // 更新本地数据
+                const notification = allNotifications.find(n => n.id === notificationId);
+                if (notification) {
+                    notification.is_read = true;
+                    console.log('本地数据已更新，通知ID:', notificationId, '现在is_read=true');
+                }
+                
+                // 立即更新徽章
+                updateUnreadBadges();
+                return Promise.resolve();
+            } catch (error) {
+                console.error('标记通知已读失败:', error);
+                if (error.responseJSON) {
+                    console.error('错误详情:', error.responseJSON);
+                }
+                return Promise.reject(error);
+            }
+        }
+        
+        // 更新未读徽章
+        function updateUnreadBadges() {
+            const readAnnouncementIds = getReadAnnouncementIds();
+            const unreadAnnouncementCount = allAnnouncements.filter(a => !readAnnouncementIds.includes(a.id)).length;
+            const unreadNotificationCount = allNotifications.filter(n => !n.is_read).length;
+            const totalUnread = unreadAnnouncementCount + unreadNotificationCount;
+            
+            // 更新菜单中的徽章
+            if (totalUnread > 0) {
+                $('#unreadBadge').text(totalUnread).show();
+            } else {
+                $('#unreadBadge').hide();
+            }
+            
+            // 更新系统公告标签的徽章
+            if (unreadAnnouncementCount > 0) {
+                $('#announcementBadge').text(unreadAnnouncementCount).show();
+            } else {
+                $('#announcementBadge').hide();
+            }
+            
+            // 更新用户通知标签的徽章
+            if (unreadNotificationCount > 0) {
+                $('#notificationBadge').text(unreadNotificationCount).show();
+            } else {
+                $('#notificationBadge').hide();
+            }
+        }
+        
+        $(document).ready(function() {
+            // 初始化模态框
+            messageCenterModal = new bootstrap.Modal(document.getElementById('messageCenterModal'));
+            
+            // 打开消息中心
+            $('#messageCenterBtn').on('click', function(e) {
+                e.preventDefault();
+                loadMessageCenter();
+                messageCenterModal.show();
+            });
+            
+            // 加载未读消息数量
+            loadUnreadCount();
+        });
+        
+        // 加载未读消息数量（简化版，仅在页面加载时调用一次获取数据并计算）
+        async function loadUnreadCount() {
+            const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+            if (!token) return;
+            
+            try {
+                const response = await $.ajax({
+                    url: `${API_BASE_URL}/message/center`,
+                    data: { token: token }
+                });
+                
+                // 保存数据
+                allAnnouncements = response.announcements || [];
+                allNotifications = response.notifications || [];
+                
+                // 更新徽章
+                updateUnreadBadges();
+            } catch (error) {
+                console.error('加载未读消息数量失败:', error);
+            }
+        }
+        
+        // 加载消息中心数据
+        async function loadMessageCenter() {
+            const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+            if (!token) {
+                alert('请先登录');
+                return;
+            }
+            
+            try {
+                const response = await $.ajax({
+                    url: `${API_BASE_URL}/message/center`,
+                    data: { token: token }
+                });
+                
+                // 保存数据到全局变量
+                allAnnouncements = response.announcements || [];
+                allNotifications = response.notifications || [];
+                
+                // 渲染系统公告
+                renderAnnouncements(allAnnouncements);
+                
+                // 渲染用户通知
+                renderNotifications(allNotifications);
+                
+                // 更新未读徽章
+                updateUnreadBadges();
+            } catch (error) {
+                console.error('加载消息中心失败:', error);
+                let errorMsg = '加载失败';
+                if (error.responseJSON && error.responseJSON.detail) {
+                    errorMsg = error.responseJSON.detail;
+                } else if (error.statusText) {
+                    errorMsg = error.statusText;
+                }
+                $('#announcementList').html('<div class="text-center py-4 text-danger">' + errorMsg + '<br><small>请检查：1.后端API是否重启 2.数据库是否有数据 3.Token是否有效</small></div>');
+                $('#notificationList').html('<div class="text-center py-4 text-danger">' + errorMsg + '</div>');
+            }
+        }
+        
+        // 渲染系统公告
+        function renderAnnouncements(announcements) {
+            const container = $('#announcementList');
+            
+            if (!announcements || announcements.length === 0) {
+                container.html('<div class="text-center py-4 text-muted">暂无公告</div>');
+                return;
+            }
+            
+            const readIds = getReadAnnouncementIds();
+            let html = '';
+            announcements.forEach((item, index) => {
+                const collapseId = `announcement-${item.id}`;
+                const isUnread = !readIds.includes(item.id);
+                const unreadIcon = isUnread ? '<span class="message-icon"></span>' : '';
+                const unreadClass = isUnread ? 'unread' : '';
+                
+                html += `
+                    <div class="message-item message-card ${unreadClass}" data-announcement-id="${item.id}">
+                        <div class="message-header" data-bs-toggle="collapse" data-bs-target="#${collapseId}" data-bs-parent="#announcementList" style="cursor: pointer;">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="message-title mb-0">
+                                    ${unreadIcon}<i class="fas fa-bullhorn me-2" style="color: #60a5fa;"></i>${item.title}
+                                    <i class="fas fa-chevron-down ms-2 collapse-icon" style="font-size: 12px; color: #94a3b8;"></i>
+                                </div>
+                                <div class="message-time mb-0" style="font-size: 13px;">
+                                    <i class="far fa-clock me-1"></i>${item.publish_time}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="collapse message-body" id="${collapseId}" data-bs-parent="#announcementList">
+                            <div class="message-content">${item.content}</div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.html(html);
+            
+            // 添加点击事件（使用事件委托）
+            container.off('click', '.message-header').on('click', '.message-header', function() {
+                const announcementId = $(this).closest('[data-announcement-id]').data('announcement-id');
+                const $messageItem = $(this).closest('.message-item');
+                $(this).find('.collapse-icon').toggleClass('rotate-180');
+                
+                const readIds = getReadAnnouncementIds();
+                if (!readIds.includes(announcementId)) {
+                    // 标记为已读
+                    markAnnouncementAsRead(announcementId);
+                    
+                    // 立即移除未读样式
+                    $messageItem.removeClass('unread').find('.message-icon').fadeOut();
+                }
+            });
+        }
+        
+        // 渲染用户通知
+        function renderNotifications(notifications) {
+            const container = $('#notificationList');
+            
+            if (!notifications || notifications.length === 0) {
+                container.html('<div class="text-center py-4 text-muted">暂无通知</div>');
+                return;
+            }
+            
+            let html = '';
+            notifications.forEach((item, index) => {
+                const unreadClass = !item.is_read ? 'unread' : '';
+                const unreadIcon = !item.is_read ? '<span class="message-icon"></span>' : '';
+                const collapseId = `notification-${item.id}`;
+                
+                html += `
+                    <div class="message-item message-card ${unreadClass}" data-notification-id="${item.id}">
+                        <div class="message-header" data-bs-toggle="collapse" data-bs-target="#${collapseId}" data-bs-parent="#notificationList" style="cursor: pointer;">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="message-title mb-0">
+                                    ${unreadIcon}<i class="fas fa-envelope me-2" style="color: #60a5fa;"></i>${item.title}
+                                    <i class="fas fa-chevron-down ms-2 collapse-icon" style="font-size: 12px; color: #94a3b8;"></i>
+                                </div>
+                                <div class="message-time mb-0" style="font-size: 13px;">
+                                    <i class="far fa-clock me-1"></i>${item.send_time}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="collapse message-body" id="${collapseId}" data-bs-parent="#notificationList">
+                            <div class="message-content">${item.content}</div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.html(html);
+            
+            // 添加点击事件（使用事件委托）
+            container.off('click', '.message-header').on('click', '.message-header', function() {
+                const notificationId = $(this).closest('[data-notification-id]').data('notification-id');
+                const $messageItem = $(this).closest('.message-item');
+                $(this).find('.collapse-icon').toggleClass('rotate-180');
+                
+                // 检查是否是欢迎通知且未读且未触发过礼花
+                const notification = allNotifications.find(n => n.id === notificationId);
+                if (notification && !notification.is_read) {
+                    if (notification.title.includes('欢迎加入') && !hasShownConfetti(notificationId)) {
+                        // 触发礼花动画
+                        showConfetti();
+                        // 标记已触发
+                        markConfettiShown(notificationId);
+                    }
+                    
+                    // 标记为已读（异步）
+                    markNotificationAsRead(notificationId).then(() => {
+                        console.log('通知', notificationId, '已标记为已读');
+                    });
+                    
+                    // 立即移除未读样式
+                    $messageItem.removeClass('unread').find('.message-icon').fadeOut();
+                }
+            });
+        }
+    </script>
+</body>
+</html>
+

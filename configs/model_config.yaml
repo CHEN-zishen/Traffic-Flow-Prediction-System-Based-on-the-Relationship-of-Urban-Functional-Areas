@@ -1,0 +1,136 @@
+# 模型配置文件
+
+# LSTM模型配置
+lstm:
+  # 模型架构参数
+  model:
+    input_size: 3          # 输入特征数（flow, speed, occupancy）
+    hidden_size: 128       # 隐藏层大小
+    num_layers: 2          # LSTM层数
+    output_size: 3         # 输出维度（flow, density, congestion）
+    dropout: 0.2           # Dropout比率
+    bidirectional: false   # 是否使用双向LSTM
+  
+  # 训练超参数
+  training:
+    batch_size: 64
+    epochs: 100
+    learning_rate: 0.001
+    weight_decay: 0.00001
+    
+    # Early Stopping
+    early_stopping:
+      enabled: true
+      patience: 10
+      min_delta: 0.0001
+    
+    # 学习率调度
+    scheduler:
+      type: "ReduceLROnPlateau"  # ReduceLROnPlateau/StepLR/CosineAnnealingLR
+      mode: "min"
+      factor: 0.5
+      patience: 5
+      min_lr: 0.00001
+    
+    # 优化器
+    optimizer: "Adam"  # Adam/SGD/AdamW
+    
+    # 损失函数
+    loss:
+      regression: "MSE"  # MSE/MAE/Huber
+      classification: "CrossEntropy"  # CrossEntropy/FocalLoss
+      regression_weight: 0.7
+      classification_weight: 0.3
+  
+  # 数据参数
+  data:
+    lookback: 12           # 历史窗口（12*5min = 1小时）
+    horizon: 12            # 预测窗口（12*5min = 1小时）
+    stride: 1              # 滑动窗口步长
+    normalize_method: "minmax"  # minmax/standard/robust
+    
+    # 数据集划分
+    train_ratio: 0.7
+    val_ratio: 0.1
+    test_ratio: 0.2
+    
+    # 数据增强
+    augmentation:
+      enabled: false
+      noise_std: 0.01
+      time_shift: 2
+
+# GRU模型配置（与LSTM类似）
+gru:
+  # 模型架构参数
+  model:
+    input_size: 3
+    hidden_size: 128
+    num_layers: 2
+    output_size: 3
+    dropout: 0.2
+    bidirectional: false
+  
+  # 训练超参数（与LSTM相同）
+  training:
+    batch_size: 64
+    epochs: 100
+    learning_rate: 0.001
+    weight_decay: 0.00001
+    
+    early_stopping:
+      enabled: true
+      patience: 10
+      min_delta: 0.0001
+    
+    scheduler:
+      type: "ReduceLROnPlateau"
+      mode: "min"
+      factor: 0.5
+      patience: 5
+      min_lr: 0.00001
+    
+    optimizer: "Adam"
+    
+    loss:
+      regression: "MSE"
+      classification: "CrossEntropy"
+      regression_weight: 0.7
+      classification_weight: 0.3
+  
+  # 数据参数（与LSTM相同）
+  data:
+    lookback: 12
+    horizon: 12
+    stride: 1
+    normalize_method: "minmax"
+    train_ratio: 0.7
+    val_ratio: 0.1
+    test_ratio: 0.2
+    
+    augmentation:
+      enabled: false
+      noise_std: 0.01
+      time_shift: 2
+
+# 模型保存配置
+checkpoint:
+  save_best_only: true
+  save_frequency: 1  # 每N个epoch保存一次
+  max_to_keep: 3     # 最多保留N个检查点
+  
+# 模型评估配置
+evaluation:
+  metrics:
+    - "MAE"
+    - "RMSE"
+    - "MAPE"
+    - "R2"
+    - "Accuracy"
+  
+  # 拥堵状态分类阈值
+  congestion_thresholds:
+    clear: 60       # 速度 > 60: 畅通
+    slow: 30        # 30 <= 速度 <= 60: 缓行
+    # 速度 < 30: 拥堵
+

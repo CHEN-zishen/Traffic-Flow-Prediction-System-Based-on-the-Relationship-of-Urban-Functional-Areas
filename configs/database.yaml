@@ -1,0 +1,175 @@
+# 数据库配置文件
+
+# MySQL数据库配置
+mysql:
+  # 连接配置（敏感信息从环境变量读取）
+  host: "${MYSQL_HOST:localhost}"
+  port: "${MYSQL_PORT:3306}"
+  database: "${MYSQL_DATABASE:traffic_prediction}"
+  charset: "utf8mb4"
+  collation: "utf8mb4_unicode_ci"
+  
+  # 连接池配置
+  pool:
+    pool_size: 10           # 连接池大小
+    max_overflow: 20        # 最大溢出连接数
+    pool_timeout: 30        # 获取连接超时（秒）
+    pool_recycle: 3600      # 连接回收时间（秒）
+    pool_pre_ping: true     # 连接前检查连接有效性
+    pool_use_lifo: true     # 使用LIFO策略（后进先出）
+  
+  # SQLAlchemy配置
+  sqlalchemy:
+    echo: false             # 是否打印SQL语句（开发时可设为true）
+    echo_pool: false        # 是否打印连接池日志
+    future: true            # 使用SQLAlchemy 2.0风格
+    
+    # 执行选项
+    execution_options:
+      isolation_level: "READ_COMMITTED"
+    
+    # 连接参数
+    connect_args:
+      connect_timeout: 10
+      read_timeout: 30
+      write_timeout: 30
+  
+  # 表配置
+  tables:
+    # 预测结果表
+    predictions:
+      name: "predictions"
+      indexes:
+        - columns: ["sensor_id", "target_time"]
+        - columns: ["prediction_time"]
+        - columns: ["created_at"]
+        - columns: ["model_version"]
+      
+      # 分区配置（可选，大数据量时使用）
+      partition:
+        enabled: false
+        type: "RANGE"  # RANGE/LIST/HASH
+        column: "created_at"
+        interval: "MONTH"
+    
+    # 训练记录表
+    training_records:
+      name: "training_records"
+      indexes:
+        - columns: ["model_version"]
+        - columns: ["status"]
+        - columns: ["created_at"]
+    
+    # API日志表
+    api_logs:
+      name: "api_logs"
+      indexes:
+        - columns: ["endpoint"]
+        - columns: ["response_status"]
+        - columns: ["created_at"]
+      
+      # 日志自动清理
+      auto_cleanup:
+        enabled: true
+        retention_days: 30  # 保留30天
+    
+    # 模型性能表
+    model_performance:
+      name: "model_performance"
+      indexes:
+        - columns: ["model_name", "metric_name"]
+        - columns: ["evaluation_time"]
+    
+    # 系统配置表
+    system_config:
+      name: "system_config"
+      indexes:
+        - columns: ["config_key"]
+
+# 数据库操作配置
+operations:
+  # 批量操作
+  bulk:
+    batch_size: 1000      # 批量插入大小
+    commit_interval: 100  # 提交间隔
+  
+  # 查询配置
+  query:
+    default_limit: 100    # 默认查询限制
+    max_limit: 10000      # 最大查询限制
+    timeout: 30           # 查询超时（秒）
+  
+  # 事务配置
+  transaction:
+    isolation_level: "READ_COMMITTED"
+    autocommit: false
+    autoflush: true
+
+# 数据库迁移配置
+migration:
+  enabled: false
+  tool: "alembic"
+  directory: "database/migrations"
+  
+  # Alembic配置
+  alembic:
+    script_location: "database/migrations"
+    version_table: "alembic_version"
+    version_table_schema: null
+
+# 数据备份配置
+backup:
+  enabled: false
+  
+  # 备份策略
+  strategy:
+    type: "full"  # full/incremental
+    schedule: "daily"  # daily/weekly/monthly
+    time: "02:00"  # 备份时间
+    
+  # 备份存储
+  storage:
+    path: "database/backups/"
+    retention_days: 30
+    compress: true
+    compression_level: 6
+
+# 监控配置
+monitoring:
+  enabled: true
+  
+  # 性能监控
+  performance:
+    slow_query_threshold: 1.0  # 慢查询阈值（秒）
+    log_slow_queries: true
+    
+  # 连接池监控
+  pool_monitoring:
+    log_pool_stats: true
+    stats_interval: 60  # 统计间隔（秒）
+  
+  # 健康检查
+  health_check:
+    enabled: true
+    interval: 30  # 检查间隔（秒）
+    timeout: 5    # 超时时间（秒）
+
+# 安全配置
+security:
+  # SSL/TLS
+  ssl:
+    enabled: false
+    ca_cert: ""
+    client_cert: ""
+    client_key: ""
+  
+  # 连接安全
+  connection:
+    verify_server_cert: false
+    allow_local_infile: false
+  
+  # SQL注入防护
+  sql_injection_protection:
+    enabled: true
+    use_parameterized_queries: true
+

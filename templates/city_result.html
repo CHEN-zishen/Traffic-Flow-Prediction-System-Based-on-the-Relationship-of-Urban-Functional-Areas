@@ -1,0 +1,1726 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ city }} 城市交通流量预测结果</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* 暗色主题（默认） */
+        body { 
+            background:#0f172a; 
+            color:#e2e8f0; 
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+        .navbar { background:#0b1222; border-bottom:1px solid rgba(255,255,255,.08); transition: background 0.3s ease; }
+        .container-wide { max-width: 1200px; margin: 32px auto; }
+        .card-dark { background:#0b1222; border:1px solid rgba(255,255,255,.08); border-radius:12px; transition: all 0.3s ease; }
+        .card-dark .hdr { padding:14px 16px; border-bottom:1px solid rgba(255,255,255,.06); font-weight:700; transition: border-color 0.3s ease; }
+        .card-dark .bd { padding:16px; }
+        
+        /* 亮色主题 */
+        body.light-theme { background: #f8fafc; color: #1e293b; }
+        body.light-theme .navbar { background:#ffffff; border-bottom:1px solid rgba(0,0,0,.08); }
+        body.light-theme .card-dark { background:#ffffff; border:1px solid rgba(0,0,0,.08); }
+        body.light-theme .card-dark .hdr { border-bottom:1px solid rgba(0,0,0,.06); color:#1e293b; }
+        body.light-theme .summary-card { background:#f1f5f9; border:1px solid rgba(0,0,0,.06); }
+        body.light-theme .muted { color:#64748b !important; }
+        body.light-theme .navbar-brand,
+        body.light-theme .btn-outline-light { color:#1e293b !important; border-color:#1e293b !important; }
+        body.light-theme .btn-outline-light:hover { background:rgba(0,0,0,.05); }
+        
+        /* 主题切换按钮 */
+        .theme-toggle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+            border: 2px solid rgba(255,255,255,0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-right: 12px;
+        }
+        
+        .theme-toggle:hover {
+            background: rgba(255,255,255,0.2);
+            transform: scale(1.1);
+            box-shadow: 0 0 15px rgba(255,255,255,0.3);
+        }
+        
+        .theme-toggle i {
+            color: #fbbf24;
+            font-size: 18px;
+            transition: all 0.3s ease;
+        }
+        
+        body.light-theme .theme-toggle {
+            background: rgba(0,0,0,0.05);
+            border-color: rgba(0,0,0,0.1);
+        }
+        
+        body.light-theme .theme-toggle:hover {
+            background: rgba(0,0,0,0.1);
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        }
+        
+        body.light-theme .theme-toggle i {
+            color: #1e293b;
+        }
+        
+        /* 导航按钮美化 */
+        .nav-btn {
+            padding: 8px 18px !important;
+            border-radius: 10px !important;
+            font-weight: 600 !important;
+            font-size: 14px !important;
+            transition: all 0.3s ease !important;
+            border: 2px solid transparent !important;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .nav-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            transform: translate(-50%, -50%);
+            transition: width 0.4s, height 0.4s;
+        }
+        
+        .nav-btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+        
+        .nav-btn i {
+            margin-right: 6px;
+            transition: transform 0.3s ease;
+        }
+        
+        .nav-btn:hover i {
+            transform: scale(1.15);
+        }
+        
+        .nav-btn-home {
+            background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%) !important;
+            box-shadow: 0 2px 8px rgba(236, 72, 153, 0.3);
+        }
+        
+        .nav-btn-home:hover {
+            box-shadow: 0 4px 15px rgba(236, 72, 153, 0.5);
+            transform: translateY(-2px);
+        }
+        
+        .nav-btn-back {
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
+            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+        }
+        
+        .nav-btn-back:hover {
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.5);
+            transform: translateY(-2px);
+        }
+        
+        .nav-btn-history {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+        }
+        
+        .nav-btn-history:hover {
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.5);
+            transform: translateY(-2px);
+        }
+        
+        .nav-btn-outline {
+            background: rgba(255,255,255,0.05) !important;
+            border: 2px solid rgba(255,255,255,0.2) !important;
+            color: #e2e8f0 !important;
+        }
+        
+        .nav-btn-outline:hover {
+            background: rgba(255,255,255,0.1) !important;
+            border-color: rgba(255,255,255,0.4) !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255,255,255,0.15);
+        }
+        
+        body.light-theme .nav-btn-outline {
+            background: rgba(0,0,0,0.03) !important;
+            border-color: rgba(0,0,0,0.15) !important;
+            color: #1e293b !important;
+        }
+        
+        body.light-theme .nav-btn-outline:hover {
+            background: rgba(0,0,0,0.08) !important;
+            border-color: rgba(0,0,0,0.25) !important;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .badge-danger { background:#ef4444; }
+        .monitor img { border-radius:8px; width:100%; height:150px; object-fit:cover; }
+        
+        /* 直播红点闪烁动画 */
+        .live-indicator {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            width: 12px;
+            height: 12px;
+            background: #ef4444;
+            border-radius: 50%;
+            box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+            animation: pulse-red 1.5s infinite;
+        }
+        
+        @keyframes pulse-red {
+            0% {
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+            }
+            50% {
+                box-shadow: 0 0 0 8px rgba(239, 68, 68, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+            }
+        }
+        
+        /* 状态边框 */
+        .status-border-good {
+            border: 3px solid #22c55e;
+        }
+        
+        .status-border-slow {
+            border: 3px solid #eab308;
+        }
+        
+        .status-border-congested {
+            border: 3px solid #ef4444;
+        }
+        .muted { color:#94a3b8; }
+        .chart-xl { height:420px; }
+        .summary-card { background:#0f1a33; border:1px solid rgba(255,255,255,.06); border-radius:8px; }
+        
+        .user-avatar-nav {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+        
+        .user-avatar-nav:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.5);
+        }
+        
+        .user-avatar-nav img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        
+        .dropdown-menu {
+            background: linear-gradient(145deg, #0d1829 0%, #0b1222 100%);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: 12px;
+            padding: 8px;
+            margin-top: 8px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            min-width: 200px;
+        }
+        
+        .dropdown-item {
+            color: #e2e8f0;
+            padding: 10px 16px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+        }
+        
+        .dropdown-item i {
+            width: 20px;
+            margin-right: 10px;
+            transition: all 0.2s ease;
+        }
+        
+        .dropdown-item:hover {
+            transform: translateX(3px);
+        }
+        
+        /* 个人中心 - 绿色 */
+        .menu-profile i {
+            color: #22c55e;
+        }
+        
+        .menu-profile:hover {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(16, 185, 129, 0.15) 100%);
+            color: #fff;
+        }
+        
+        .menu-profile:hover i {
+            color: #4ade80;
+        }
+        
+        /* 模型配置 - 黄色 */
+        .menu-config i {
+            color: #eab308;
+        }
+        
+        .menu-config:hover {
+            background: linear-gradient(135deg, rgba(234, 179, 8, 0.15) 0%, rgba(245, 158, 11, 0.15) 100%);
+            color: #fff;
+        }
+        
+        .menu-config:hover i {
+            color: #fbbf24;
+        }
+        /* 消息中心 - 蓝色 */
+        .menu-message i {
+            color: #60a5fa;
+        }
+        
+        .menu-message:hover {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(37, 99, 235, 0.15) 100%);
+            color: #fff;
+        }
+        
+        .menu-message:hover i {
+            color: #60a5fa;
+        }
+        
+        .unread-badge {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            background: #ef4444;
+            color: white;
+            font-size: 10px;
+            padding: 2px 5px;
+            border-radius: 10px;
+            min-width: 16px;
+            text-align: center;
+        }
+        
+
+        
+        .dropdown-divider {
+            border-color: rgba(102, 126, 234, 0.2) !important;
+            margin: 8px 0;
+        }
+        
+        /* 退出登录 - 红色 */
+        .menu-logout {
+            color: #fca5a5;
+        }
+        
+        .menu-logout i {
+            color: #ef4444;
+        }
+        
+        .menu-logout:hover {
+            background: rgba(239, 68, 68, 0.15);
+            color: #fef2f2;
+        }
+        
+        .menu-logout:hover i {
+            color: #f87171;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/"><i class="fas fa-traffic-light me-2"></i>智能交通流预测系统</a>
+            <div class="d-flex gap-2 align-items-center">
+                <a href="/" class="btn btn-sm nav-btn nav-btn-outline nav-btn-home">
+                    <i class="fas fa-home"></i>首页
+                </a>
+                <a href="/input" class="btn btn-sm nav-btn nav-btn-back">
+                    <i class="fas fa-arrow-left"></i>返回输入
+                </a>
+                <a href="#" class="btn btn-sm nav-btn nav-btn-history" id="view-history">
+                    <i class="fas fa-history"></i>历史数据
+                </a>
+                
+                <!-- 主题切换按钮 -->
+                <div class="theme-toggle" id="themeToggle" title="切换主题">
+                    <i class="fas fa-moon"></i>
+                </div>
+                
+                <div class="dropdown">
+                    <div class="user-avatar-nav" data-bs-toggle="dropdown" aria-expanded="false" id="navAvatar">
+                        <span id="navAvatarText">U</span>
+                    </div>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item menu-profile" href="/profile"><i class="fas fa-user me-2"></i>个人中心</a></li>
+                        <li><a class="dropdown-item menu-config" href="/model-config"><i class="fas fa-cog me-2"></i>模型配置</a></li>
+                        <li><a class="dropdown-item menu-message" href="#" id="messageCenterBtn" style="position: relative;">
+                            <i class="fas fa-bell me-2"></i>消息中心
+                            <span class="unread-badge" id="unreadBadge" style="display: none;">0</span>
+                        </a></li>
+                        <li><hr class="dropdown-divider" style="border-color: rgba(255,255,255,.1);"></li>
+                        <li><a class="dropdown-item menu-logout" href="#" id="logoutBtn"><i class="fas fa-sign-out-alt me-2"></i>退出登录</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-wide">
+        <h4 class="fw-bold mb-3">{{ city }}城市交通流量预测</h4>
+
+        <div class="row g-3 mb-3">
+            <div class="col-lg-9">
+                <div class="card-dark">
+                    <div class="hdr">参数摘要</div>
+                    <div class="bd row g-3" id="summary-cards">
+                        <!-- filled by JS -->
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3">
+                <div class="card-dark h-100">
+                    <div class="hdr">预测场景天气</div>
+                    <div class="bd">
+                        <div class="d-flex align-items-center gap-3">
+                            <i class="fas fa-cloud-showers-heavy fa-2x text-info" id="wicon"></i>
+                            <div>
+                                <div id="wtext" class="fw-bold">-</div>
+                                <div class="muted" id="wextra">温度 -°C · 湿度 -% · 风速 - km/h</div>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <span class="muted">天气仅用于影响系数，非实时气象接口</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-3">
+            <div class="col-lg-12">
+                <div class="card-dark">
+                    <div class="hdr">全国交通流热力图</div>
+                    <div class="bd">
+                        <div id="chinaMap" class="chart-xl"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-3 mt-3">
+            <div class="col-lg-4">
+                <div class="card-dark h-100">
+                    <div class="hdr">拥堵指数预测</div>
+                    <div class="bd">
+                        <div id="congestionGauge" style="height:320px;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card-dark h-100">
+                    <div class="hdr">平均速度预测</div>
+                    <div class="bd">
+                        <div id="speedLiquid" style="height:320px;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card-dark h-100">
+                    <div class="hdr">车流量预测</div>
+                    <div class="bd">
+                        <div id="gauge" style="height:320px;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-dark mt-3">
+            <div class="hdr d-flex justify-content-between align-items-center">
+                <span>交通监控点</span>
+                <button class="btn btn-sm btn-outline-light" id="refreshMonitors">
+                    <i class="fas fa-sync-alt me-1"></i>刷新监控点
+                </button>
+            </div>
+            <div class="bd">
+                <div class="row g-3" id="monitors">
+                    <!-- JS填充若干监控缩略图 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts-liquidfill@3.1.0/dist/echarts-liquidfill.min.js"></script>
+    <script>
+        // 生产环境地址
+        const API_BASE_URL = 'https://yjwkusxabeto.sealoshzh.site';  // 后端公网地址
+        
+        // 辅助函数：处理头像URL
+        function getFullAvatarUrl(avatarUrl) {
+            if (!avatarUrl) return null;
+            // 如果已经是完整URL，直接返回
+            if (avatarUrl.startsWith('http://') || avatarUrl.startsWith('https://')) {
+                return avatarUrl;
+            }
+            // 如果是相对路径，拼接后端地址
+            return API_BASE_URL + avatarUrl;
+        }
+
+        function getAuthToken(){
+            return localStorage.getItem('token') || sessionStorage.getItem('token');
+        }
+
+        function getUserInfo(){
+            const userStr = localStorage.getItem('user') || sessionStorage.getItem('user');
+            if (userStr) {
+                try {
+                    return JSON.parse(userStr);
+                } catch (e) {
+                    return null;
+                }
+            }
+            return null;
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            sessionStorage.removeItem('token');
+            localStorage.removeItem('user');
+            sessionStorage.removeItem('user');
+            // 标记为主动退出登录
+            sessionStorage.setItem('manualLogout', 'true');
+            window.location.href = '/login';
+        }
+
+        async function ensureLoggedIn(){
+            const token = getAuthToken();
+            if (!token){
+                window.location.href = '/login';
+                return;
+            }
+            try {
+                await $.ajax({ url: `${API_BASE_URL}/auth/check`, data: { token } });
+            } catch (err){
+                localStorage.removeItem('token');
+                sessionStorage.removeItem('token');
+                localStorage.removeItem('user');
+                sessionStorage.removeItem('user');
+                window.location.href = '/login';
+            }
+        }
+
+        // 加载用户头像
+        function loadUserAvatar() {
+            const user = getUserInfo();
+            if (user) {
+                const avatarInitial = (user.nickname || user.username || 'U')[0].toUpperCase();
+                const navAvatarElement = document.getElementById('navAvatar');
+                
+                if (user.avatar) {
+                    const fullAvatarUrl = getFullAvatarUrl(user.avatar);
+                    // 先销毁旧的dropdown实例（如果存在）
+                    if (typeof bootstrap !== 'undefined' && navAvatarElement) {
+                        const oldDropdown = bootstrap.Dropdown.getInstance(navAvatarElement);
+                        if (oldDropdown) {
+                            oldDropdown.dispose();
+                        }
+                    }
+                    
+                    // 更新内容并保留dropdown属性
+                    navAvatarElement.innerHTML = `<img src="${fullAvatarUrl}" alt="Avatar">`;
+                    navAvatarElement.setAttribute('data-bs-toggle', 'dropdown');
+                    navAvatarElement.setAttribute('aria-expanded', 'false');
+                    
+                    // 重新初始化Bootstrap Dropdown
+                    if (typeof bootstrap !== 'undefined' && navAvatarElement) {
+                        new bootstrap.Dropdown(navAvatarElement);
+                    }
+                } else {
+                    document.getElementById('navAvatarText').textContent = avatarInitial;
+                }
+            }
+        }
+
+        // 主题切换
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            if (savedTheme === 'light') {
+                $('body').addClass('light-theme');
+                $('#themeToggle i').removeClass('fa-moon').addClass('fa-sun');
+            }
+        }
+
+        $('#themeToggle').on('click', function() {
+            $('body').toggleClass('light-theme');
+            const isLight = $('body').hasClass('light-theme');
+            
+            if (isLight) {
+                $('#themeToggle i').removeClass('fa-moon').addClass('fa-sun');
+                localStorage.setItem('theme', 'light');
+            } else {
+                $('#themeToggle i').removeClass('fa-sun').addClass('fa-moon');
+                localStorage.setItem('theme', 'dark');
+            }
+        });
+
+        // 退出登录
+        $('#logoutBtn').on('click', function(e) {
+            e.preventDefault();
+            if (confirm('确定要退出登录吗？')) {
+                logout();
+            }
+        });
+
+        // 查看历史数据按钮点击事件
+        $('#view-history').on('click', function(e) {
+            e.preventDefault();
+            const city = decodeURIComponent('{{ city }}');
+            window.location.href = `/history?from=city-result&city=${encodeURIComponent(city)}`;
+        });
+
+        (async function(){
+            initTheme();
+            await ensureLoggedIn();
+            loadUserAvatar();
+
+            const city = decodeURIComponent('{{ city }}');
+            const key = `city_prediction_${city}`;
+            const cache = JSON.parse(localStorage.getItem(key) || '{}');
+            const result = cache.result || {};
+            const payload = cache.payload || {};
+            const fmt = (v)=> v==null?'-':v;
+
+            // 参数摘要
+            const items = [
+                {label:'预测日期', value: fmt(payload.date)},
+                {label:'时间段', value: fmt(payload.time_range)},
+                {label:'城市功能区', value: fmt(payload.district)},
+                {label:'其他情况', value: fmt(payload.other || '无')},
+                {label:'预测时间', value: fmt(result.generated_at)},
+                {label:'分值置信度', value: result.confidence? (result.confidence*100).toFixed(2)+'%':'-'},
+            ];
+            const box = document.getElementById('summary-cards');
+            items.forEach(x=>{
+                const c = document.createElement('div');
+                c.className = 'col-md-4';
+                c.innerHTML = `<div class="summary-card p-3">
+                    <div class="muted">${x.label}</div>
+                    <div class="fw-bold mt-1">${x.value}</div>
+                </div>`;
+                box.appendChild(c);
+            });
+
+            // 天气图标映射
+            const weatherIcons = {
+                '晴': 'fa-sun',
+                '多云': 'fa-cloud',
+                '小雨': 'fa-cloud-rain',
+                '大雨': 'fa-cloud-showers-heavy',
+                '暴雪': 'fa-snowflake',
+                '雾霾': 'fa-smog',
+                '沙尘暴': 'fa-wind'
+            };
+            
+            const weatherColors = {
+                '晴': 'text-warning',
+                '多云': 'text-secondary',
+                '小雨': 'text-info',
+                '大雨': 'text-primary',
+                '暴雪': 'text-light',
+                '雾霾': 'text-muted',
+                '沙尘暴': 'text-danger'
+            };
+            
+            // 设置天气图标
+            const weather = fmt(payload.weather);
+            const iconClass = weatherIcons[weather] || 'fa-cloud';
+            const colorClass = weatherColors[weather] || 'text-info';
+            const wicon = document.getElementById('wicon');
+            wicon.className = `fas ${iconClass} fa-2x ${colorClass}`;
+            
+            // 天气文本
+            document.getElementById('wtext').textContent = weather;
+            document.getElementById('wextra').textContent = `预测得分 ${result.index_score||'-'} · 拥堵等级 ${result.severity||'-'}`;
+
+            // 地图
+            const mapChart = echarts.init(document.getElementById('chinaMap'));
+            
+            // 显示加载提示
+            mapChart.showLoading('default', {
+                text: '正在加载地图数据...',
+                color: '#3b82f6',
+                textColor: '#e2e8f0',
+                maskColor: 'rgba(0, 0, 0, 0.3)',
+                zlevel: 0
+            });
+            
+            // 使用Promise超时处理，增加错误提示
+            const fetchWithTimeout = (url, timeout = 10000) => {
+                return Promise.race([
+                    fetch(url),
+                    new Promise((_, reject) => 
+                        setTimeout(() => reject(new Error('请求超时')), timeout)
+                    )
+                ]);
+            };
+            
+            // 尝试加载地图数据，使用多层降级策略
+            const loadMapData = async () => {
+                // 数据源优先级：本地 > 高德云 > jsDelivr CDN
+                const dataSources = [
+                    { 
+                        url: '/static/data/maps/china.json', 
+                        name: '本地地图数据', 
+                        timeout: 5000 
+                    },
+                    { 
+                        url: 'https://geo.datav.aliyun.com/areas_v3/bound/geojson?code=100000_full', 
+                        name: '高德云API', 
+                        timeout: 10000 
+                    },
+                    { 
+                        url: 'https://cdn.jsdelivr.net/npm/echarts@5/map/json/china.json', 
+                        name: 'jsDelivr CDN', 
+                        timeout: 8000 
+                    }
+                ];
+                
+                // 依次尝试每个数据源
+                for (let i = 0; i < dataSources.length; i++) {
+                    const source = dataSources[i];
+                    try {
+                        console.log(`正在尝试从 ${source.name} 加载地图数据...`);
+                        const response = await fetchWithTimeout(source.url, source.timeout);
+                        
+                        if (!response.ok) {
+                            throw new Error(`HTTP错误: ${response.status}`);
+                        }
+                        
+                        const data = await response.json();
+                        console.log(`✅ 成功从 ${source.name} 加载地图数据`);
+                        return data;
+                        
+                    } catch (error) {
+                        console.warn(`❌ 从 ${source.name} 加载失败:`, error.message);
+                        
+                        // 如果不是最后一个数据源，继续尝试下一个
+                        if (i < dataSources.length - 1) {
+                            console.log(`正在尝试下一个数据源...`);
+                            continue;
+                        } else {
+                            // 所有数据源都失败了
+                            throw new Error('所有地图数据源均无法访问');
+                        }
+                    }
+                }
+            };
+            
+            loadMapData()
+                .then(geo => {
+                    mapChart.hideLoading();
+                    echarts.registerMap('china', geo);
+                    const data = (result.province_flows||[]);
+                    mapChart.setOption({
+                        backgroundColor: 'transparent',
+                        tooltip: { trigger: 'item' },
+                        visualMap: { min: 0, max: 15000, left: 'left', top: 'bottom', text:['高','低'], calculable: true, inRange:{color:['#0ea5e9','#22d3ee','#f59e0b','#ef4444']} },
+                        series: [{
+                            name: '车流量(辆/小时)', type: 'map', map: 'china', roam: true, label: {show:false}, data
+                        }]
+                    });
+                })
+                .catch(err => {
+                    console.error('地图加载完全失败:', err);
+                    mapChart.hideLoading();
+                    
+                    // 显示友好的错误提示
+                    const errorHtml = `
+                        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 40px; text-align: center;">
+                            <i class="fas fa-exclamation-circle" style="font-size: 48px; color: #ef4444; margin-bottom: 20px;"></i>
+                            <h4 style="color: #e2e8f0; margin-bottom: 10px;">地图加载失败</h4>
+                            <p style="color: #94a3b8; margin-bottom: 20px;">
+                                ${err.message.includes('超时') ? '网络连接超时，请检查您的网络连接' : '无法从任何数据源加载地图'}
+                            </p>
+                            <div style="color: #64748b; font-size: 14px; line-height: 1.8;">
+                                <p>可能的原因：</p>
+                                <ul style="text-align: left; display: inline-block; margin: 0;">
+                                    <li>当前网络环境限制了地图资源访问</li>
+                                    <li>防火墙或安全软件阻止了请求</li>
+                                    <li>移动网络可能有特殊限制</li>
+                                    <li>地图服务暂时不可用</li>
+                                </ul>
+                                <p style="margin-top: 15px; color: #94a3b8;">
+                                    建议：尝试切换到稳定的WiFi网络，或使用VPN
+                                </p>
+                                <p style="margin-top: 15px;">
+                                    <button onclick="location.reload()" class="btn btn-sm btn-primary" style="padding: 8px 20px;">
+                                        <i class="fas fa-sync-alt me-2"></i>重新加载页面
+                                    </button>
+                                </p>
+                            </div>
+                        </div>
+                    `;
+                    
+                    document.getElementById('chinaMap').innerHTML = errorHtml;
+                });
+
+            // 1. 拥堵指数预测 - 环形进度条
+            const congestionGauge = echarts.init(document.getElementById('congestionGauge'));
+            const congestionValue = result.congestion_index || 0;
+            const severity = result.severity || '畅通';
+            
+            // 根据拥堵等级设置颜色和进度条颜色
+            let congestionColor = '#22c55e'; // 畅通-绿色
+            let progressColors = [[1, '#22c55e']]; // 默认绿色进度条
+            
+            if (congestionValue >= 0.8) {
+                congestionColor = '#ef4444'; // 严重拥堵-红色
+                progressColors = [[1, '#ef4444']];
+            } else if (congestionValue >= 0.6) {
+                congestionColor = '#f97316'; // 中度拥堵-橙色
+                progressColors = [[1, '#f97316']];
+            } else if (congestionValue >= 0.4) {
+                congestionColor = '#eab308'; // 轻度拥堵-黄色
+                progressColors = [[1, '#eab308']];
+            }
+            
+            congestionGauge.setOption({
+                backgroundColor: 'transparent',
+                series: [{
+                    type: 'gauge',
+                    startAngle: 90,
+                    endAngle: -270,
+                    radius: '85%',
+                    min: 0,
+                    max: 1,
+                    splitNumber: 10,
+                    pointer: {
+                        show: false
+                    },
+                    progress: {
+                        show: true,
+                        overlap: false,
+                        roundCap: true,
+                        clip: false,
+                        itemStyle: {
+                            color: congestionColor,
+                            shadowBlur: 20,
+                            shadowColor: congestionColor
+                        }
+                    },
+                    axisLine: {
+                        lineStyle: {
+                            width: 20,
+                            color: [[1, 'rgba(255,255,255,0.1)']]
+                        }
+                    },
+                    splitLine: {
+                        show: true,
+                        distance: -22,
+                        length: 12,
+                        lineStyle: {
+                            color: 'rgba(255,255,255,0.3)',
+                            width: 2
+                        }
+                    },
+                    axisTick: {
+                        show: true,
+                        distance: -20,
+                        length: 6,
+                        lineStyle: {
+                            color: 'rgba(255,255,255,0.2)',
+                            width: 1
+                        }
+                    },
+                    axisLabel: {
+                        show: true,
+                        distance: 35,
+                        color: '#94a3b8',
+                        fontSize: 11,
+                        formatter: function(value) {
+                            return value.toFixed(1);
+                        }
+                    },
+                    data: [{
+                        value: congestionValue,
+                        name: severity,
+                        title: {
+                            offsetCenter: ['0%', '-10%'],
+                            fontSize: 18,
+                            color: '#e2e8f0'
+                        },
+                        detail: {
+                            offsetCenter: ['0%', '25%'],
+                            valueAnimation: true,
+                            formatter: function(value) {
+                                return value.toFixed(3);
+                            },
+                            fontSize: 38,
+                            fontWeight: 'bold',
+                            color: congestionColor
+                        }
+                    }],
+                    title: {
+                        fontSize: 18,
+                        color: '#e2e8f0'
+                    },
+                    detail: {
+                        fontSize: 38,
+                        fontWeight: 'bold',
+                        color: congestionColor
+                    }
+                }],
+                animationDuration: 2000,
+                animationEasing: 'cubicOut'
+            });
+
+            // 2. 平均速度预测 - 立水柱图
+            const speedLiquid = echarts.init(document.getElementById('speedLiquid'));
+            const avgSpeed = result.avg_speed || 0;
+            const speedPercent = avgSpeed / 100; // 转换为百分比（假设最大速度100km/h）
+            
+            // 根据速度设置颜色
+            let speedColor = '#ef4444'; // 低速-红色
+            if (avgSpeed >= 50) {
+                speedColor = '#22c55e'; // 高速-绿色
+            } else if (avgSpeed >= 30) {
+                speedColor = '#eab308'; // 中速-黄色
+            }
+            
+            speedLiquid.setOption({
+                backgroundColor: 'transparent',
+                series: [{
+                    type: 'liquidFill',
+                    radius: '85%',
+                    center: ['50%', '50%'],
+                    data: [speedPercent, speedPercent * 0.95, speedPercent * 0.9],
+                    color: [
+                        {
+                            type: 'linear',
+                            x: 0, y: 0, x2: 0, y2: 1,
+                            colorStops: [
+                                { offset: 0, color: speedColor },
+                                { offset: 1, color: speedColor + '80' }
+                            ]
+                        }
+                    ],
+                    backgroundStyle: {
+                        color: 'rgba(255,255,255,0.05)',
+                        borderWidth: 2,
+                        borderColor: 'rgba(255,255,255,0.1)'
+                    },
+                    label: {
+                        fontSize: 36,
+                        fontWeight: 'bold',
+                        color: '#e2e8f0',
+                        formatter: function() {
+                            return avgSpeed.toFixed(1) + '\nkm/h';
+                        }
+                    },
+                    outline: {
+                        show: true,
+                        borderDistance: 4,
+                        itemStyle: {
+                            borderWidth: 2,
+                            borderColor: 'rgba(255,255,255,0.2)'
+                        }
+                    },
+                    waveAnimation: true,
+                    animationDuration: 3000,
+                    animationEasing: 'cubicOut'
+                }]
+            });
+
+            // 3. 车流量预测 - 仪表盘
+            const gauge = echarts.init(document.getElementById('gauge'));
+            gauge.setOption({
+                backgroundColor: 'transparent',
+                series: [{
+                    type: 'gauge',
+                    min: 0,
+                    max: 15000,
+                    radius: '85%',
+                    splitNumber: 8,
+                    axisLine: {
+                        lineStyle: {
+                            width: 20,
+                            color: [
+                                [0.3, '#22c55e'],
+                                [0.7, '#eab308'],
+                                [1, '#ef4444']
+                            ]
+                        }
+                    },
+                    pointer: {
+                        itemStyle: {
+                            color: 'auto'
+                        },
+                        width: 4,
+                        length: '70%'
+                    },
+                    axisTick: {
+                        distance: -20,
+                        length: 8,
+                        lineStyle: {
+                            color: '#fff',
+                            width: 2
+                        }
+                    },
+                    splitLine: {
+                        distance: -20,
+                        length: 20,
+                        lineStyle: {
+                            color: '#fff',
+                            width: 3
+                        }
+                    },
+                    axisLabel: {
+                        color: '#94a3b8',
+                        distance: 25,
+                        fontSize: 12,
+                        formatter: function(value) {
+                            if (value === 0 || value === 15000) return value;
+                            return Math.round(value / 1000) + 'k';
+                        }
+                    },
+                    title: {
+                        offsetCenter: [0, '75%'],
+                        fontSize: 14,
+                        color: '#94a3b8'
+                    },
+                    detail: {
+                        valueAnimation: true,
+                        formatter: '{value} 辆/小时',
+                        fontSize: 20,
+                        fontWeight: 'bold',
+                        color: '#e2e8f0',
+                        offsetCenter: [0, '50%']
+                    },
+                    data: [{
+                        value: result.flow_per_hour || 0,
+                        name: '预测值'
+                    }]
+                }],
+                animationDuration: 2000,
+                animationEasing: 'cubicOut'
+            });
+
+            // ========== 交通监控点渲染系统 ==========
+            
+            // 天气到图片前缀的映射
+            const weatherImageMap = {
+                '晴': 'dusttornado',
+                '多云': 'mist',
+                '小雨': 'rain_storm',
+                '大雨': 'rain_storm',
+                '暴雪': 'snow_storm',
+                '雾霾': 'haze',
+                '沙尘暴': 'sand_storm'
+            };
+            
+            // 获取当前天气对应的图片前缀
+            const currentWeather = payload.weather || '晴';
+            const imagePrefix = weatherImageMap[currentWeather] || 'dusttornado';
+            
+            // 全局变量
+            let allMonitors = result.all_monitors || [];
+            let imageCatalog = null;
+            
+            // 渲染监控点的函数
+            function renderMonitors(monitors) {
+                const mons = document.getElementById('monitors');
+                mons.innerHTML = ''; // 清空现有内容
+                
+                if (!imageCatalog) {
+                    console.error('图片目录未加载');
+                    return;
+                }
+                
+                const availableImages = imageCatalog[imagePrefix]?.files || [];
+                
+                if (availableImages.length === 0) {
+                    console.warn('没有找到匹配的图片');
+                    return;
+                }
+                
+                // 简单的字符串哈希函数（确定性随机）
+                function hashString(str) {
+                    let hash = 0;
+                    for (let i = 0; i < str.length; i++) {
+                        const char = str.charCodeAt(i);
+                        hash = ((hash << 5) - hash) + char;
+                        hash = hash & hash;
+                    }
+                    return Math.abs(hash);
+                }
+                
+                // 渲染8个监控点
+                monitors.slice(0, 8).forEach((m, i) => {
+                    const col = document.createElement('div');
+                    col.className = 'col-md-3 monitor';
+                    
+                    // 基于监控点名称选择确定性的图片（同一个监控点每次显示相同图片）
+                    const hash = hashString(m.name + imagePrefix);
+                    const imgIndex = hash % availableImages.length;
+                    const imgFile = availableImages[imgIndex];
+                    const imgPath = `/static/data/images/${imgFile}`;
+                    
+                    // 根据状态确定边框颜色
+                    const status = m.status || '良好';
+                    let borderClass = 'status-border-good';
+                    if (status === '拥堵') {
+                        borderClass = 'status-border-congested';
+                    } else if (status === '缓行') {
+                        borderClass = 'status-border-slow';
+                    }
+                    
+                    col.innerHTML = `<div class="position-relative">
+                        <img src="${imgPath}" 
+                             alt="${m.name}" 
+                             class="${borderClass}"
+                             style="width: 100%; height: 180px; object-fit: cover; background: #1e3a8a; border-radius: 8px;"
+                             loading="lazy"
+                             onerror="this.onerror=null; this.src='/static/data/images/${imagePrefix}-001.jpg';">
+                        <div class="live-indicator" title="实时直播"></div>
+                    </div>
+                    <div class="mt-1 text-truncate" title="${m.name}">${m.name}</div>`;
+                    mons.appendChild(col);
+                });
+            }
+            
+            // 刷新监控点函数
+            let refreshCount = 0;
+            function refreshMonitors() {
+                if (allMonitors.length === 0) {
+                    alert('没有更多监控点可供刷新');
+                    return;
+                }
+                
+                // 增加刷新计数，用于生成不同的监控点组合
+                refreshCount++;
+                
+                // 使用确定性随机来选择监控点（基于刷新次数）
+                const startIdx = (refreshCount * 8) % allMonitors.length;
+                const selected = [];
+                for (let i = 0; i < 8; i++) {
+                    const idx = (startIdx + i) % allMonitors.length;
+                    selected.push(allMonitors[idx]);
+                }
+                
+                // 重新渲染
+                renderMonitors(selected);
+                
+                // 按钮旋转动画
+                const icon = $('#refreshMonitors .fa-sync-alt');
+                icon.css('transition', 'transform 0.6s ease');
+                icon.css('transform', 'rotate(360deg)');
+                setTimeout(() => {
+                    icon.css('transform', 'rotate(0deg)');
+                }, 600);
+            }
+            
+            // 绑定刷新按钮
+            $('#refreshMonitors').on('click', refreshMonitors);
+            
+            // 加载图片目录并初始化监控点
+            const points = result.monitors || [];
+            fetch('/static/data/image_catalog.json')
+                .then(r => r.json())
+                .then(catalog => {
+                    imageCatalog = catalog;
+                    renderMonitors(points);
+                })
+                .catch(err => {
+                    console.error('加载图片目录失败:', err);
+                    // 降级方案
+                    const mons = document.getElementById('monitors');
+                    points.slice(0,8).forEach((m,i)=>{
+                        const col = document.createElement('div');
+                        col.className = 'col-md-3 monitor';
+                        const imgNumber = String((i * 10 + 1)).padStart(3, '0');
+                        const imgPath = `/static/data/images/${imagePrefix}-${imgNumber}.jpg`;
+                        
+                        const status = m.status || '良好';
+                        let borderClass = 'status-border-good';
+                        if (status === '拥堵') {
+                            borderClass = 'status-border-congested';
+                        } else if (status === '缓行') {
+                            borderClass = 'status-border-slow';
+                        }
+                        
+                        col.innerHTML = `<div class="position-relative">
+                            <img src="${imgPath}" 
+                                 alt="${m.name}" 
+                                 class="${borderClass}"
+                                 style="width: 100%; height: 180px; object-fit: cover; background: #1e3a8a; border-radius: 8px;">
+                            <div class="live-indicator" title="实时直播"></div>
+                        </div>
+                        <div class="mt-1">${m.name}</div>`;
+                        mons.appendChild(col);
+                    });
+                });
+        })();
+    </script>
+
+    <!-- 消息中心模态框 -->
+    <div class="modal fade" id="messageCenterModal" tabindex="-1" aria-labelledby="messageCenterModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content" style="background: #0f172a; color: #e2e8f0; border: 1px solid rgba(255,255,255,0.1);">
+                <div class="modal-header" style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+                    <h5 class="modal-title" id="messageCenterModalLabel">
+                        <i class="fas fa-bell me-2"></i>消息中心
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- 标签页 -->
+                    <ul class="nav nav-tabs mb-3" id="messageTab" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="announcement-tab" data-bs-toggle="tab" data-bs-target="#announcement" type="button" role="tab" aria-controls="announcement" aria-selected="true">
+                                <i class="fas fa-bullhorn me-2"></i>系统公告
+                                <span class="badge bg-danger ms-1" id="announcementBadge" style="display: none;">0</span>
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="notification-tab" data-bs-toggle="tab" data-bs-target="#notification" type="button" role="tab" aria-controls="notification" aria-selected="false">
+                                <i class="fas fa-envelope me-2"></i>用户通知
+                                <span class="badge bg-danger ms-1" id="notificationBadge" style="display: none;">0</span>
+                            </button>
+                        </li>
+                    </ul>
+                    
+                    <div class="tab-content" id="messageTabContent">
+                        <!-- 系统公告 -->
+                        <div class="tab-pane fade show active" id="announcement" role="tabpanel" aria-labelledby="announcement-tab">
+                            <div id="announcementList" class="accordion">
+                                <div class="text-center py-4">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">加载中...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 用户通知 -->
+                        <div class="tab-pane fade" id="notification" role="tabpanel" aria-labelledby="notification-tab">
+                            <div id="notificationList" class="accordion">
+                                <div class="text-center py-4">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">加载中...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        /* 消息中心样式 */
+        .nav-tabs .nav-link {
+            color: #94a3b8;
+            border: none;
+            border-bottom: 2px solid transparent;
+            background: none;
+        }
+        
+        .nav-tabs .nav-link:hover {
+            color: #e2e8f0;
+            border-color: rgba(255,255,255,0.2);
+        }
+        
+        .nav-tabs .nav-link.active {
+            color: #60a5fa;
+            background: none;
+            border-bottom: 2px solid #60a5fa;
+        }
+        
+        .message-item {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+        
+        .message-item:hover {
+            background: rgba(255,255,255,0.08);
+            border-color: rgba(96,165,250,0.3);
+        }
+        
+        .message-header {
+            padding: 15px 20px;
+            transition: background 0.2s ease;
+        }
+        
+        .message-header:hover {
+            background: rgba(255,255,255,0.03);
+        }
+        
+        .message-body {
+            padding: 0 20px 15px 20px;
+        }
+        
+        .message-item.unread {
+            background: rgba(59,130,246,0.1);
+            border-left: 3px solid #3b82f6;
+        }
+        
+        .message-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #e2e8f0;
+            margin-bottom: 10px;
+        }
+        
+        .message-content {
+            color: #cbd5e1;
+            line-height: 1.8;
+            white-space: pre-wrap;
+        }
+        
+        .message-time {
+            color: #64748b;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        
+        .message-icon {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: #ef4444;
+            border-radius: 50%;
+            margin-right: 8px;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .collapse-icon {
+            transition: transform 0.3s ease;
+            display: inline-block;
+        }
+        
+        .rotate-180 {
+            transform: rotate(180deg);
+        }
+        
+        /* 亮色主题适配 */
+        body.light-theme .modal-content {
+            background: #ffffff !important;
+            color: #1e293b !important;
+        }
+        
+        body.light-theme .modal-header {
+            border-bottom-color: rgba(0,0,0,0.1) !important;
+        }
+        
+        body.light-theme .nav-tabs .nav-link {
+            color: #64748b;
+        }
+        
+        body.light-theme .nav-tabs .nav-link.active {
+            color: #3b82f6;
+            border-bottom-color: #3b82f6;
+        }
+        
+        body.light-theme .message-item {
+            background: rgba(0,0,0,0.03);
+            border-color: rgba(0,0,0,0.1);
+        }
+        
+        body.light-theme .message-item:hover {
+            background: rgba(0,0,0,0.05);
+            border-color: rgba(59,130,246,0.3);
+        }
+        
+        body.light-theme .message-item.unread {
+            background: rgba(59,130,246,0.08);
+            border-left-color: #3b82f6;
+        }
+        
+        body.light-theme .message-header:hover {
+            background: rgba(0,0,0,0.02);
+        }
+        
+        body.light-theme .message-title {
+            color: #1e293b;
+        }
+        
+        body.light-theme .message-content {
+            color: #475569;
+        }
+        
+        body.light-theme .message-time {
+            color: #64748b;
+        }
+        
+        body.light-theme .collapse-icon {
+            color: #64748b !important;
+        }
+        
+        body.light-theme .text-muted {
+            color: #94a3b8 !important;
+        }
+    </style>
+
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script>
+        // 消息中心功能
+        let messageCenterModal;
+        let allAnnouncements = [];
+        let allNotifications = [];
+        
+        // 获取已读公告ID列表
+        function getReadAnnouncementIds() {
+            const stored = localStorage.getItem('readAnnouncementIds');
+            return stored ? JSON.parse(stored) : [];
+        }
+        
+        // 检查通知是否已触发过礼花
+        function hasShownConfetti(notificationId) {
+            const shown = localStorage.getItem('confettiShown_' + notificationId);
+            return shown === 'true';
+        }
+        
+        // 标记通知已触发礼花
+        function markConfettiShown(notificationId) {
+            localStorage.setItem('confettiShown_' + notificationId, 'true');
+        }
+        
+        // 触发礼花动画
+        function showConfetti() {
+            const duration = 6 * 1000; // 6秒
+            const animationEnd = Date.now() + duration;
+            const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 9999 };
+            
+            function randomInRange(min, max) {
+                return Math.random() * (max - min) + min;
+            }
+            
+            const interval = setInterval(function() {
+                const timeLeft = animationEnd - Date.now();
+                
+                if (timeLeft <= 0) {
+                    return clearInterval(interval);
+                }
+                
+                const particleCount = 50 * (timeLeft / duration);
+                
+                // 从左侧发射
+                confetti(Object.assign({}, defaults, {
+                    particleCount,
+                    origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 }
+                }));
+                
+                // 从右侧发射
+                confetti(Object.assign({}, defaults, {
+                    particleCount,
+                    origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 }
+                }));
+            }, 250);
+        }
+        
+        // 标记公告为已读
+        function markAnnouncementAsRead(announcementId) {
+            const readIds = getReadAnnouncementIds();
+            if (!readIds.includes(announcementId)) {
+                readIds.push(announcementId);
+                localStorage.setItem('readAnnouncementIds', JSON.stringify(readIds));
+                updateUnreadBadges();
+            }
+        }
+        
+        // 标记通知为已读（调用API）
+        async function markNotificationAsRead(notificationId) {
+            const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+            if (!token) {
+                console.error('未找到token');
+                return Promise.reject('未找到token');
+            }
+            
+            try {
+                const response = await $.ajax({
+                    url: `${API_BASE_URL}/message/notifications/${notificationId}/read?token=${token}`,
+                    method: 'POST'
+                });
+                console.log('标记通知已读API响应:', response);
+                
+                // 更新本地数据
+                const notification = allNotifications.find(n => n.id === notificationId);
+                if (notification) {
+                    notification.is_read = true;
+                    console.log('本地数据已更新，通知ID:', notificationId, '现在is_read=true');
+                }
+                
+                // 立即更新徽章
+                updateUnreadBadges();
+                return Promise.resolve();
+            } catch (error) {
+                console.error('标记通知已读失败:', error);
+                if (error.responseJSON) {
+                    console.error('错误详情:', error.responseJSON);
+                }
+                return Promise.reject(error);
+            }
+        }
+        
+        // 更新未读徽章
+        function updateUnreadBadges() {
+            const readAnnouncementIds = getReadAnnouncementIds();
+            const unreadAnnouncementCount = allAnnouncements.filter(a => !readAnnouncementIds.includes(a.id)).length;
+            const unreadNotificationCount = allNotifications.filter(n => !n.is_read).length;
+            const totalUnread = unreadAnnouncementCount + unreadNotificationCount;
+            
+            // 更新菜单中的徽章
+            if (totalUnread > 0) {
+                $('#unreadBadge').text(totalUnread).show();
+            } else {
+                $('#unreadBadge').hide();
+            }
+            
+            // 更新系统公告标签的徽章
+            if (unreadAnnouncementCount > 0) {
+                $('#announcementBadge').text(unreadAnnouncementCount).show();
+            } else {
+                $('#announcementBadge').hide();
+            }
+            
+            // 更新用户通知标签的徽章
+            if (unreadNotificationCount > 0) {
+                $('#notificationBadge').text(unreadNotificationCount).show();
+            } else {
+                $('#notificationBadge').hide();
+            }
+        }
+        
+        $(document).ready(function() {
+            // 初始化模态框
+            messageCenterModal = new bootstrap.Modal(document.getElementById('messageCenterModal'));
+            
+            // 打开消息中心
+            $('#messageCenterBtn').on('click', function(e) {
+                e.preventDefault();
+                loadMessageCenter();
+                messageCenterModal.show();
+            });
+            
+            // 加载未读消息数量
+            loadUnreadCount();
+        });
+        
+        // 加载未读消息数量（简化版，仅在页面加载时调用一次获取数据并计算）
+        async function loadUnreadCount() {
+            const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+            if (!token) return;
+            
+            try {
+                const response = await $.ajax({
+                    url: `${API_BASE_URL}/message/center`,
+                    data: { token: token }
+                });
+                
+                // 保存数据
+                allAnnouncements = response.announcements || [];
+                allNotifications = response.notifications || [];
+                
+                // 更新徽章
+                updateUnreadBadges();
+            } catch (error) {
+                console.error('加载未读消息数量失败:', error);
+            }
+        }
+        
+        // 加载消息中心数据
+        async function loadMessageCenter() {
+            const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+            if (!token) {
+                alert('请先登录');
+                return;
+            }
+            
+            try {
+                const response = await $.ajax({
+                    url: `${API_BASE_URL}/message/center`,
+                    data: { token: token }
+                });
+                
+                // 保存数据到全局变量
+                allAnnouncements = response.announcements || [];
+                allNotifications = response.notifications || [];
+                
+                // 渲染系统公告
+                renderAnnouncements(allAnnouncements);
+                
+                // 渲染用户通知
+                renderNotifications(allNotifications);
+                
+                // 更新未读徽章
+                updateUnreadBadges();
+            } catch (error) {
+                console.error('加载消息中心失败:', error);
+                let errorMsg = '加载失败';
+                if (error.responseJSON && error.responseJSON.detail) {
+                    errorMsg = error.responseJSON.detail;
+                } else if (error.statusText) {
+                    errorMsg = error.statusText;
+                }
+                $('#announcementList').html('<div class="text-center py-4 text-danger">' + errorMsg + '<br><small>请检查：1.后端API是否重启 2.数据库是否有数据 3.Token是否有效</small></div>');
+                $('#notificationList').html('<div class="text-center py-4 text-danger">' + errorMsg + '</div>');
+            }
+        }
+        
+        // 渲染系统公告
+        function renderAnnouncements(announcements) {
+            const container = $('#announcementList');
+            
+            if (!announcements || announcements.length === 0) {
+                container.html('<div class="text-center py-4 text-muted">暂无公告</div>');
+                return;
+            }
+            
+            const readIds = getReadAnnouncementIds();
+            let html = '';
+            announcements.forEach((item, index) => {
+                const collapseId = `announcement-${item.id}`;
+                const isUnread = !readIds.includes(item.id);
+                const unreadIcon = isUnread ? '<span class="message-icon"></span>' : '';
+                const unreadClass = isUnread ? 'unread' : '';
+                
+                html += `
+                    <div class="message-item message-card ${unreadClass}" data-announcement-id="${item.id}">
+                        <div class="message-header" data-bs-toggle="collapse" data-bs-target="#${collapseId}" data-bs-parent="#announcementList" style="cursor: pointer;">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="message-title mb-0">
+                                    ${unreadIcon}<i class="fas fa-bullhorn me-2" style="color: #60a5fa;"></i>${item.title}
+                                    <i class="fas fa-chevron-down ms-2 collapse-icon" style="font-size: 12px; color: #94a3b8;"></i>
+                                </div>
+                                <div class="message-time mb-0" style="font-size: 13px;">
+                                    <i class="far fa-clock me-1"></i>${item.publish_time}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="collapse message-body" id="${collapseId}" data-bs-parent="#announcementList">
+                            <div class="message-content">${item.content}</div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.html(html);
+            
+            // 添加点击事件（使用事件委托）
+            container.off('click', '.message-header').on('click', '.message-header', function() {
+                const announcementId = $(this).closest('[data-announcement-id]').data('announcement-id');
+                const $messageItem = $(this).closest('.message-item');
+                $(this).find('.collapse-icon').toggleClass('rotate-180');
+                
+                const readIds = getReadAnnouncementIds();
+                if (!readIds.includes(announcementId)) {
+                    // 标记为已读
+                    markAnnouncementAsRead(announcementId);
+                    
+                    // 立即移除未读样式
+                    $messageItem.removeClass('unread').find('.message-icon').fadeOut();
+                }
+            });
+        }
+        
+        // 渲染用户通知
+        function renderNotifications(notifications) {
+            const container = $('#notificationList');
+            
+            if (!notifications || notifications.length === 0) {
+                container.html('<div class="text-center py-4 text-muted">暂无通知</div>');
+                return;
+            }
+            
+            let html = '';
+            notifications.forEach((item, index) => {
+                const unreadClass = !item.is_read ? 'unread' : '';
+                const unreadIcon = !item.is_read ? '<span class="message-icon"></span>' : '';
+                const collapseId = `notification-${item.id}`;
+                
+                html += `
+                    <div class="message-item message-card ${unreadClass}" data-notification-id="${item.id}">
+                        <div class="message-header" data-bs-toggle="collapse" data-bs-target="#${collapseId}" data-bs-parent="#notificationList" style="cursor: pointer;">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="message-title mb-0">
+                                    ${unreadIcon}<i class="fas fa-envelope me-2" style="color: #60a5fa;"></i>${item.title}
+                                    <i class="fas fa-chevron-down ms-2 collapse-icon" style="font-size: 12px; color: #94a3b8;"></i>
+                                </div>
+                                <div class="message-time mb-0" style="font-size: 13px;">
+                                    <i class="far fa-clock me-1"></i>${item.send_time}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="collapse message-body" id="${collapseId}" data-bs-parent="#notificationList">
+                            <div class="message-content">${item.content}</div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.html(html);
+            
+            // 添加点击事件（使用事件委托）
+            container.off('click', '.message-header').on('click', '.message-header', function() {
+                const notificationId = $(this).closest('[data-notification-id]').data('notification-id');
+                const $messageItem = $(this).closest('.message-item');
+                $(this).find('.collapse-icon').toggleClass('rotate-180');
+                
+                // 检查是否是欢迎通知且未读且未触发过礼花
+                const notification = allNotifications.find(n => n.id === notificationId);
+                if (notification && !notification.is_read) {
+                    if (notification.title.includes('欢迎加入') && !hasShownConfetti(notificationId)) {
+                        // 触发礼花动画
+                        showConfetti();
+                        // 标记已触发
+                        markConfettiShown(notificationId);
+                    }
+                    
+                    // 标记为已读（异步）
+                    markNotificationAsRead(notificationId).then(() => {
+                        console.log('通知', notificationId, '已标记为已读');
+                    });
+                    
+                    // 立即移除未读样式
+                    $messageItem.removeClass('unread').find('.message-icon').fadeOut();
+                }
+            });
+        }
+    </script>
+</body>
+</html>
+
+

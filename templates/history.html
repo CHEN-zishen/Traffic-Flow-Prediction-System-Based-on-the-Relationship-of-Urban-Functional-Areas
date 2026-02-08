@@ -1,0 +1,2088 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>历史预测数据 - 智能交通流预测系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* 暗色主题（默认） */
+        body { 
+            background:#0f172a; 
+            color:#e2e8f0; 
+            font-family: "Microsoft YaHei", sans-serif; 
+            min-height:100vh; 
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+        .navbar { background:#0b1222; border-bottom:1px solid rgba(255,255,255,.08); transition: background 0.3s ease; }
+        
+        /* 亮色主题 */
+        body.light-theme { background: #f8fafc; color: #1e293b; }
+        body.light-theme .navbar { background:#ffffff; border-bottom:1px solid rgba(0,0,0,.08); }
+        body.light-theme .panel { background:#ffffff; border:1px solid rgba(0,0,0,.08); }
+        body.light-theme .panel-header { color:#1e293b; border-bottom:1px solid rgba(0,0,0,.06); }
+        body.light-theme .metric-card { background:#f1f5f9; border:1px solid rgba(0,0,0,.1); }
+        body.light-theme .metric-label { color:#64748b; }
+        body.light-theme .metric-value { color:#1e293b; }
+        body.light-theme .chart-box { background:#f1f5f9; border:1px solid rgba(0,0,0,.12); }
+        body.light-theme .table-dark-custom tbody tr { background:#f1f5f9; }
+        body.light-theme .table-dark-custom tbody tr:hover { background:#e2e8f0; }
+        body.light-theme .table-dark-custom tbody td { color:#1e293b; }
+        body.light-theme .table-dark-custom thead th { color:#475569; }
+        body.light-theme .filter-group select { background:#f1f5f9; color:#1e293b; }
+        body.light-theme .input-dark { background:#f1f5f9; color:#1e293b; }
+        body.light-theme .pagination-buttons button { background:#f1f5f9; color:#1e293b; }
+        body.light-theme .pagination-info { color:#64748b; }
+        body.light-theme .page-size-selector select { background:#f1f5f9; color:#1e293b; }
+        body.light-theme .navbar-brand,
+        body.light-theme .btn-outline-light { color:#1e293b !important; border-color:#1e293b !important; }
+        body.light-theme .btn-outline-light:hover { background:rgba(0,0,0,.05); }
+        body.light-theme .detail-card { background:#f1f5f9; border:1px solid rgba(0,0,0,.1); }
+        body.light-theme .detail-label { color:#64748b; }
+        body.light-theme .detail-value { color:#1e293b; }
+        body.light-theme .modal-custom .modal-content { background:#ffffff; color:#1e293b; }
+        
+        /* 主题切换按钮 */
+        .theme-toggle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+            border: 2px solid rgba(255,255,255,0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-right: 12px;
+        }
+        
+        .theme-toggle:hover {
+            background: rgba(255,255,255,0.2);
+            transform: scale(1.1);
+            box-shadow: 0 0 15px rgba(255,255,255,0.3);
+        }
+        
+        .theme-toggle i {
+            color: #fbbf24;
+            font-size: 18px;
+            transition: all 0.3s ease;
+        }
+        
+        body.light-theme .theme-toggle {
+            background: rgba(0,0,0,0.05);
+            border-color: rgba(0,0,0,0.1);
+        }
+        
+        body.light-theme .theme-toggle:hover {
+            background: rgba(0,0,0,0.1);
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        }
+        
+        body.light-theme .theme-toggle i {
+            color: #1e293b;
+        }
+        
+        /* 导航按钮美化 */
+        .nav-btn {
+            padding: 8px 18px !important;
+            border-radius: 10px !important;
+            font-weight: 600 !important;
+            font-size: 14px !important;
+            transition: all 0.3s ease !important;
+            border: 2px solid transparent !important;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .nav-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            transform: translate(-50%, -50%);
+            transition: width 0.4s, height 0.4s;
+        }
+        
+        .nav-btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+        
+        .nav-btn i {
+            margin-right: 6px;
+            transition: transform 0.3s ease;
+        }
+        
+        .nav-btn:hover i {
+            transform: scale(1.15);
+        }
+        
+        .nav-btn-home {
+            background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%) !important;
+            box-shadow: 0 2px 8px rgba(236, 72, 153, 0.3);
+        }
+        
+        .nav-btn-home:hover {
+            box-shadow: 0 4px 15px rgba(236, 72, 153, 0.5);
+            transform: translateY(-2px);
+        }
+        
+        .nav-btn-back {
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
+            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+        }
+        
+        .nav-btn-back:hover {
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.5);
+            transform: translateY(-2px);
+        }
+        
+        .nav-btn-history {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
+        }
+        
+        .nav-btn-history:hover {
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.6);
+            transform: translateY(-2px);
+        }
+        
+        .nav-btn-outline {
+            background: rgba(255,255,255,0.05) !important;
+            border: 2px solid rgba(255,255,255,0.2) !important;
+            color: #e2e8f0 !important;
+        }
+        
+        .nav-btn-outline:hover {
+            background: rgba(255,255,255,0.1) !important;
+            border-color: rgba(255,255,255,0.4) !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255,255,255,0.15);
+        }
+        
+        body.light-theme .nav-btn-outline {
+            background: rgba(0,0,0,0.03) !important;
+            border-color: rgba(0,0,0,0.15) !important;
+            color: #1e293b !important;
+        }
+        
+        body.light-theme .nav-btn-outline:hover {
+            background: rgba(0,0,0,0.08) !important;
+            border-color: rgba(0,0,0,0.25) !important;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .container-wide { max-width: 1200px; margin: 32px auto; }
+        .panel { background:#0b1222; border:1px solid rgba(255,255,255,.08); border-radius:12px; margin-bottom:20px; }
+        .panel-header { display:flex; justify-content:space-between; align-items:center; padding:18px 20px; border-bottom:1px solid rgba(255,255,255,.06); font-weight:700; }
+        .panel-body { padding:20px; }
+        .metric-card { background:#0f1a33; border-radius:12px; padding:18px; border:1px solid rgba(148,163,184,.1); height:100%; }
+        .metric-label { color:#94a3b8; font-size:13px; }
+        .metric-value { font-size:30px; font-weight:700; margin-top:6px; }
+        .metric-extra { color:#38bdf8; font-size:12px; margin-top:8px; }
+        .filter-group select { background:#0f1a33; border:1px solid rgba(148,163,184,.2); color:#e2e8f0; border-radius:10px; padding:10px 14px; }
+        .btn-action { background:#2563eb; color:#fff; border:none; padding:10px 16px; border-radius:10px; font-weight:600; cursor:pointer; transition:all 0.2s; }
+        .btn-action:hover { background:#1d4ed8; transform:translateY(-1px); box-shadow:0 4px 12px rgba(37,99,235,0.4); }
+        .btn-outline { background:rgba(148,163,184,.15); color:#e2e8f0; border:none; padding:10px 16px; border-radius:10px; font-weight:600; cursor:pointer; transition:all 0.2s; }
+        .btn-outline:hover { background:rgba(148,163,184,.25); transform:translateY(-1px); }
+        .chart-box { background:#0f1a33; border-radius:12px; border:1px solid rgba(148,163,184,.12); padding:14px; height:320px; }
+        .chart-title { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+        .chart-title span { color:#94a3b8; font-size:13px; }
+        .chart-area { height:240px; }
+        .width-220 { width:220px; }
+        .input-dark { background:#0f1a33; border:1px solid rgba(148,163,184,.2); color:#e2e8f0; border-radius:8px; }
+        .text-xs { font-size:12px; }
+        .table-dark-custom { width:100%; border-collapse:collapse; }
+        .table-dark-custom thead th { color:#94a3b8; font-weight:600; font-size:13px; padding:12px 10px; border-bottom:2px solid rgba(148,163,184,.2); text-align:left; }
+        .table-dark-custom tbody tr { background:#0f1a33; transition:all 0.2s; border-bottom:1px solid rgba(148,163,184,.08); }
+        .table-dark-custom tbody tr:hover { background:#16244a; }
+        .table-dark-custom tbody td { padding:14px 10px; font-size:14px; color:#cbd5f5; }
+        .table-dark-custom tbody td:first-child { border-radius:8px 0 0 8px; }
+        .table-dark-custom tbody td:last-child { border-radius:0 8px 8px 0; }
+        .badge-status { padding:4px 10px; border-radius:999px; font-size:12px; font-weight:600; }
+        .badge-status.good { background:rgba(34,197,94,.2); color:#22c55e; }
+        .badge-status.medium { background:rgba(251,191,36,.2); color:#fbbf24; }
+        .badge-status.bad { background:rgba(239,68,68,.2); color:#ef4444; }
+        .table-actions a { text-decoration:none; color:#60a5fa; font-size:13px; }
+        .table-actions a:hover { color:#93c5fd; }
+        .pagination-controls { display:flex; justify-content:space-between; align-items:center; margin-top:20px; padding-top:20px; border-top:1px solid rgba(148,163,184,.1); }
+        .pagination-info { color:#94a3b8; font-size:14px; }
+        .pagination-buttons { display:flex; gap:8px; }
+        .pagination-buttons button { background:#0f1a33; border:1px solid rgba(148,163,184,.2); color:#e2e8f0; padding:8px 16px; border-radius:8px; cursor:pointer; transition:all 0.2s; }
+        .pagination-buttons button:hover:not(:disabled) { background:#16244a; border-color:#60a5fa; }
+        .pagination-buttons button:disabled { opacity:0.5; cursor:not-allowed; }
+        .pagination-buttons button.active { background:#2563eb; border-color:#2563eb; font-weight:600; }
+        .page-size-selector { display:flex; align-items:center; gap:8px; }
+        .page-size-selector select { background:#0f1a33; border:1px solid rgba(148,163,184,.2); color:#e2e8f0; padding:6px 12px; border-radius:8px; }
+        
+        /* 模态框样式 */
+        .modal-custom .modal-content { background:#0b1222; border:1px solid rgba(148,163,184,.2); color:#e2e8f0; }
+        .modal-custom .modal-header { border-bottom:1px solid rgba(148,163,184,.15); }
+        .modal-custom .modal-body { max-height:70vh; overflow-y:auto; }
+        .modal-custom .btn-close { filter:invert(1); }
+        .detail-card { background:#16244a; border-radius:10px; padding:16px; margin-bottom:16px; border:1px solid rgba(148,163,184,.1); }
+        .detail-label { color:#94a3b8; font-size:13px; margin-bottom:4px; }
+        .detail-value { font-size:16px; font-weight:600; color:#e2e8f0; }
+        .chart-container { height:300px; margin-top:12px; }
+        .monitor-grid { display:grid; grid-template-columns:repeat(2, 1fr); gap:16px; }
+        .monitor-item { position:relative; }
+        .monitor-item img { width:100%; height:180px; object-fit:cover; border-radius:8px; border:2px solid #475569; }
+        .monitor-status { position:absolute; top:8px; right:8px; padding:4px 8px; background:rgba(0,0,0,.7); border-radius:4px; font-size:11px; }
+        .status-good { color:#22c55e; }
+        .status-slow { color:#eab308; }
+        .status-congested { color:#ef4444; }
+        
+        .user-avatar-nav {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+        
+        .user-avatar-nav:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.5);
+        }
+        
+        .user-avatar-nav img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        
+        .dropdown-menu {
+            background: linear-gradient(145deg, #0d1829 0%, #0b1222 100%);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: 12px;
+            padding: 8px;
+            margin-top: 8px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            min-width: 200px;
+        }
+        
+        .dropdown-item {
+            color: #e2e8f0;
+            padding: 10px 16px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+        }
+        
+        .dropdown-item i {
+            width: 20px;
+            margin-right: 10px;
+            transition: all 0.2s ease;
+        }
+        
+        .dropdown-item:hover {
+            transform: translateX(3px);
+        }
+        
+        /* 个人中心 - 绿色 */
+        .menu-profile i {
+            color: #22c55e;
+        }
+        
+        .menu-profile:hover {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(16, 185, 129, 0.15) 100%);
+            color: #fff;
+        }
+        
+        .menu-profile:hover i {
+            color: #4ade80;
+        }
+        
+        /* 模型配置 - 黄色 */
+        .menu-config i {
+            color: #eab308;
+        }
+        
+        .menu-config:hover {
+            background: linear-gradient(135deg, rgba(234, 179, 8, 0.15) 0%, rgba(245, 158, 11, 0.15) 100%);
+            color: #fff;
+        }
+        
+        .menu-config:hover i {
+            color: #fbbf24;
+        }
+        /* 消息中心 - 蓝色 */
+        .menu-message i {
+            color: #60a5fa;
+        }
+        
+        .menu-message:hover {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(37, 99, 235, 0.15) 100%);
+            color: #fff;
+        }
+        
+        .menu-message:hover i {
+            color: #60a5fa;
+        }
+        
+        .unread-badge {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            background: #ef4444;
+            color: white;
+            font-size: 10px;
+            padding: 2px 5px;
+            border-radius: 10px;
+            min-width: 16px;
+            text-align: center;
+        }
+        
+
+        
+        .dropdown-divider {
+            border-color: rgba(102, 126, 234, 0.2) !important;
+            margin: 8px 0;
+        }
+        
+        /* 退出登录 - 红色 */
+        .menu-logout {
+            color: #fca5a5;
+        }
+        
+        .menu-logout i {
+            color: #ef4444;
+        }
+        
+        .menu-logout:hover {
+            background: rgba(239, 68, 68, 0.15);
+            color: #fef2f2;
+        }
+        
+        .menu-logout:hover i {
+            color: #f87171;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/"><i class="fas fa-traffic-light me-2"></i>智能交通流预测系统</a>
+            <div class="d-flex gap-2 align-items-center">
+                <a href="/" class="btn btn-sm nav-btn nav-btn-outline nav-btn-home">
+                    <i class="fas fa-home"></i>首页
+                </a>
+                <a href="/input" class="btn btn-sm nav-btn nav-btn-outline nav-btn-back" id="backLink">
+                    <i class="fas fa-arrow-left"></i>返回输入
+                </a>
+                <a href="/history" class="btn btn-sm nav-btn nav-btn-history">
+                    <i class="fas fa-history"></i>历史数据
+                </a>
+                
+                <!-- 主题切换按钮 -->
+                <div class="theme-toggle" id="themeToggle" title="切换主题">
+                    <i class="fas fa-moon"></i>
+                </div>
+                
+                <div class="dropdown">
+                    <div class="user-avatar-nav" data-bs-toggle="dropdown" aria-expanded="false" id="navAvatar">
+                        <span id="navAvatarText">U</span>
+                    </div>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item menu-profile" href="/profile"><i class="fas fa-user me-2"></i>个人中心</a></li>
+                        <li><a class="dropdown-item menu-config" href="/model-config"><i class="fas fa-cog me-2"></i>模型配置</a></li>
+                        <li><a class="dropdown-item menu-message" href="#" id="messageCenterBtn" style="position: relative;">
+                            <i class="fas fa-bell me-2"></i>消息中心
+                            <span class="unread-badge" id="unreadBadge" style="display: none;">0</span>
+                        </a></li>
+                        <li><hr class="dropdown-divider" style="border-color: rgba(255,255,255,.1);"></li>
+                        <li><a class="dropdown-item menu-logout" href="#" id="logoutBtn"><i class="fas fa-sign-out-alt me-2"></i>退出登录</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-wide">
+        <h4 class="fw-bold mb-3">历史预测数据</h4>
+
+        <div class="panel">
+            <div class="panel-header">
+                <span>历史汇总</span>
+                <div class="d-flex gap-2 align-items-center">
+                    <div class="filter-group d-flex gap-2">
+                        <select id="statRange" aria-label="筛选统计范围">
+                            <option value="all">所有统计</option>
+                            <option value="7">近7天</option>
+                            <option value="30">近30天</option>
+                        </select>
+                        <select id="cityFilter" aria-label="筛选城市">
+                            <option value="all">全部城市</option>
+                        </select>
+                    </div>
+                    <button class="btn-outline" id="refreshBtn"><i class="fas fa-sync me-2"></i>重新获取</button>
+                    <button class="btn-action" id="exportBtn"><i class="fas fa-file-export me-2"></i>导出CSV</button>
+                </div>
+            </div>
+
+            <div class="panel-body">
+                <div class="row g-3 mb-3" id="metricRow">
+                    <div class="col-lg-3 col-sm-6">
+                        <div class="metric-card">
+                            <div class="metric-label">预测总次数</div>
+                            <div class="metric-value" id="metric-total">-</div>
+                            <div class="metric-extra" id="metric-total-extra">累计记录</div>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-sm-6">
+                        <div class="metric-card">
+                            <div class="metric-label">平均交通量</div>
+                            <div class="metric-value" id="metric-flow">-</div>
+                            <div class="metric-extra">单位：辆/小时</div>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-sm-6">
+                        <div class="metric-card">
+                            <div class="metric-label">平均车速</div>
+                            <div class="metric-value" id="metric-speed">-</div>
+                            <div class="metric-extra">单位：km/h</div>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-sm-6">
+                        <div class="metric-card">
+                            <div class="metric-label">平均拥堵指数</div>
+                            <div class="metric-value" id="metric-index">-</div>
+                            <div class="metric-extra">0 ~ 1 越高越拥堵</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-lg-7">
+                        <div class="chart-box">
+                            <div class="chart-title"><h6 class="fw-bold">交通流量历史趋势</h6><span id="flowChartRange">全部记录</span></div>
+                            <div id="flowChart" class="chart-area"></div>
+                        </div>
+                    </div>
+                    <div class="col-lg-5">
+                        <div class="chart-box">
+                            <div class="chart-title"><h6 class="fw-bold">拥堵指数历史趋势</h6><span id="congestionChartRange">全部记录</span></div>
+                            <div id="congestionChart" class="chart-area"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-header">
+                <span>历史预测记录</span>
+                <div class="d-flex gap-2 align-items-center">
+                    <div class="page-size-selector">
+                        <label for="pageSize" class="text-xs mb-0">每页显示</label>
+                        <select id="pageSize">
+                            <option value="5">5条</option>
+                            <option value="10" selected>10条</option>
+                            <option value="20">20条</option>
+                            <option value="50">50条</option>
+                        </select>
+                    </div>
+                    <div class="input-group width-220">
+                        <input type="text" id="searchInput" class="form-control input-dark" placeholder="搜索城市/时间段">
+                    </div>
+                </div>
+            </div>
+            <div class="panel-body">
+                <div class="table-responsive">
+                    <table class="table-dark-custom">
+                        <thead>
+                            <tr>
+                                <th>记录ID</th>
+                                <th>城市</th>
+                                <th>日期</th>
+                                <th>时间段</th>
+                                <th>交通量</th>
+                                <th>平均车速</th>
+                                <th>拥堵指数</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyTable"></tbody>
+                    </table>
+                </div>
+                
+                <!-- 分页控件 -->
+                <div class="pagination-controls">
+                    <div class="pagination-info">
+                        显示第 <span id="pageStart">0</span> - <span id="pageEnd">0</span> 条，共 <span id="totalRecords">0</span> 条记录
+                    </div>
+                    <div class="pagination-buttons" id="paginationButtons">
+                        <!-- 由 JS 动态生成 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 历史详情模态框 -->
+    <div class="modal fade modal-custom" id="detailModal" tabindex="-1" aria-labelledby="detailModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="detailModalLabel"><i class="fas fa-chart-line me-2"></i>历史预测详情</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- 基本信息 -->
+                    <div class="detail-card">
+                        <h6 class="fw-bold mb-3"><i class="fas fa-info-circle me-2"></i>基本信息</h6>
+                        <div class="row g-3" id="detailBasicInfo">
+                            <!-- 由 JS 填充 -->
+                        </div>
+                    </div>
+
+                    <!-- 预测结果 -->
+                    <div class="detail-card">
+                        <h6 class="fw-bold mb-3"><i class="fas fa-chart-bar me-2"></i>预测结果</h6>
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <div class="detail-label">交通流量</div>
+                                <div class="detail-value" id="detailFlow">-</div>
+                                <small class="text-muted">辆/小时</small>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="detail-label">平均车速</div>
+                                <div class="detail-value" id="detailSpeed">-</div>
+                                <small class="text-muted">km/h</small>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="detail-label">拥堵指数</div>
+                                <div class="detail-value" id="detailCongestion">-</div>
+                                <small class="text-muted">0-1之间</small>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="detail-label">拥堵等级</div>
+                                <div class="detail-value" id="detailSeverity">-</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 预测数据可视化 -->
+                    <div class="detail-card">
+                        <h6 class="fw-bold mb-3"><i class="fas fa-chart-pie me-2"></i>预测数据可视化</h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div style="background:#0f1a33; border-radius:10px; padding:16px; border:1px solid rgba(148,163,184,.08);">
+                                    <h6 class="text-center mb-2" style="font-size:14px; color:#94a3b8;">拥堵指数预测</h6>
+                                    <div id="detailCongestionGauge" style="height:280px;"></div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div style="background:#0f1a33; border-radius:10px; padding:16px; border:1px solid rgba(148,163,184,.08);">
+                                    <h6 class="text-center mb-2" style="font-size:14px; color:#94a3b8;">平均速度预测</h6>
+                                    <div id="detailSpeedLiquid" style="height:280px;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 图表展示 -->
+                    <div class="detail-card">
+                        <h6 class="fw-bold mb-2"><i class="fas fa-chart-area me-2"></i>交通流量仪表盘</h6>
+                        <div id="detailGauge" class="chart-container"></div>
+                    </div>
+
+                    <!-- 交通监控点 -->
+                    <div class="detail-card">
+                        <h6 class="fw-bold mb-3"><i class="fas fa-video me-2"></i>交通监控点</h6>
+                        <div id="detailMonitors" class="monitor-grid">
+                            <!-- 由 JS 填充 -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts-liquidfill@3.1.0/dist/echarts-liquidfill.min.js"></script>
+    <script>
+        // 生产环境地址
+        const API_BASE_URL = 'https://yjwkusxabeto.sealoshzh.site';  // 后端公网地址
+        
+        // 辅助函数：处理头像URL
+        function getFullAvatarUrl(avatarUrl) {
+            if (!avatarUrl) return null;
+            // 如果已经是完整URL，直接返回
+            if (avatarUrl.startsWith('http://') || avatarUrl.startsWith('https://')) {
+                return avatarUrl;
+            }
+            // 如果是相对路径，拼接后端地址
+            return API_BASE_URL + avatarUrl;
+        }
+        let historyData = [];
+        let baseSummary = null;
+        let currentPage = 1;
+        let pageSize = 10;
+        let filteredData = [];
+        let allCities = []; // 存储所有城市列表，避免筛选后丢失
+
+        function getAuthToken(){
+            return localStorage.getItem('token') || sessionStorage.getItem('token');
+        }
+
+        function getUserInfo(){
+            const userStr = localStorage.getItem('user') || sessionStorage.getItem('user');
+            if (userStr) {
+                try {
+                    return JSON.parse(userStr);
+                } catch (e) {
+                    return null;
+                }
+            }
+            return null;
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            sessionStorage.removeItem('token');
+            localStorage.removeItem('user');
+            sessionStorage.removeItem('user');
+            // 标记为主动退出登录
+            sessionStorage.setItem('manualLogout', 'true');
+            window.location.href = '/login';
+        }
+
+        async function ensureLoggedIn(){
+            const token = getAuthToken();
+            if (!token){
+                window.location.href = '/login';
+                return false;
+            }
+            try {
+                await $.ajax({ url: `${API_BASE_URL}/auth/check`, data: { token } });
+                return true;
+            } catch (err){
+                localStorage.removeItem('token');
+                sessionStorage.removeItem('token');
+                localStorage.removeItem('user');
+                sessionStorage.removeItem('user');
+                window.location.href = '/login';
+                return false;
+            }
+        }
+
+        // 加载用户头像
+        function loadUserAvatar() {
+            const user = getUserInfo();
+            if (user) {
+                const avatarInitial = (user.nickname || user.username || 'U')[0].toUpperCase();
+                const $navAvatar = $('#navAvatar');
+                
+                if (user.avatar) {
+                    const fullAvatarUrl = getFullAvatarUrl(user.avatar);
+                    // 保留 dropdown 属性，只更新内容
+                    $navAvatar.html(`<img src="${fullAvatarUrl}" alt="Avatar">`);
+                    // 确保 dropdown 属性保留
+                    $navAvatar.attr('data-bs-toggle', 'dropdown');
+                    $navAvatar.attr('aria-expanded', 'false');
+                } else {
+                    $('#navAvatarText').text(avatarInitial);
+                }
+            }
+        }
+
+        // 退出登录
+        $('#logoutBtn').on('click', function(e) {
+            e.preventDefault();
+            if (confirm('确定要退出登录吗？')) {
+                logout();
+            }
+        });
+
+        // 主题切换
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            if (savedTheme === 'light') {
+                $('body').addClass('light-theme');
+                $('#themeToggle i').removeClass('fa-moon').addClass('fa-sun');
+            }
+        }
+
+        $('#themeToggle').on('click', function() {
+            $('body').toggleClass('light-theme');
+            const isLight = $('body').hasClass('light-theme');
+            
+            if (isLight) {
+                $('#themeToggle i').removeClass('fa-moon').addClass('fa-sun');
+                localStorage.setItem('theme', 'light');
+            } else {
+                $('#themeToggle i').removeClass('fa-sun').addClass('fa-moon');
+                localStorage.setItem('theme', 'dark');
+            }
+        });
+
+        const sampleCities = ['北京','上海','广州','深圳','杭州','南京','湖北武汉','四川成都','重庆','西安','郑州','青岛'];
+        const sampleSlots = ['早高峰','日间平峰','晚高峰','夜间'];
+        const sampleWeathers = ['晴','多云','小雨','大雨','雾霾','沙尘暴'];
+
+        function mockHistory(count = 30){
+            const arr = [];
+            const today = new Date();
+            for(let i=0;i<count;i++){
+                const d = new Date(today); d.setDate(today.getDate()-i);
+                const city = sampleCities[i % sampleCities.length];
+                const slot = sampleSlots[i % sampleSlots.length];
+                const weather = sampleWeathers[i % sampleWeathers.length];
+                const flow = 3200 + Math.round(Math.random()*4000);
+                const speedVal = 25 + Math.random()*20;
+                const congestionVal = Math.max(0.15, Math.min(0.95, 1 - speedVal/80 + Math.random()*0.1));
+                arr.push({
+                    id: `pred-${180 + i}`,
+                    city,
+                    date: d.toISOString().split('T')[0],
+                    slot,
+                    flow,
+                    speed: speedVal.toFixed(1),
+                    congestion: parseFloat(congestionVal.toFixed(2)),
+                    weather: weather
+                });
+            }
+            baseSummary = {
+                total_count: arr.length,
+                avg_flow: arr.reduce((s,d)=>s+d.flow,0)/arr.length,
+                avg_speed: arr.reduce((s,d)=>s+parseFloat(d.speed),0)/arr.length,
+                avg_congestion: arr.reduce((s,d)=>s+d.congestion,0)/arr.length,
+                cities: [...new Set(arr.map(d=>d.city))],
+            };
+            allCities = baseSummary.cities;
+            populateCityOptions(allCities);
+            return arr.reverse();
+        }
+
+        async function loadHistory(){
+            const rangeVal = $('#statRange').val();
+            const cityVal = $('#cityFilter').val() || 'all';
+            const rangeDays = rangeVal === 'all' ? 0 : parseInt(rangeVal, 10) || 0;
+            
+            // 获取token，用于过滤当前用户的数据
+            const token = getAuthToken();
+            if (!token) {
+                console.error('未找到token');
+                return;
+            }
+
+            const params = { token, limit: 200 };
+            if (rangeDays > 0) params.range_days = rangeDays;
+            if (cityVal && cityVal !== 'all') params.city = cityVal;
+
+            try {
+                const [recordsRes, summaryRes] = await Promise.all([
+                    $.ajax({ url: `${API_BASE_URL}/city/history/records`, data: params }),
+                    $.ajax({ url: `${API_BASE_URL}/city/history/summary`, data: {
+                        token,
+                        range_days: rangeDays,
+                        ...(cityVal && cityVal !== 'all' ? { city: cityVal } : {}),
+                    } }),
+                ]);
+
+                baseSummary = summaryRes;
+                historyData = (recordsRes.records || []).map(item => ({
+                    id: `pred-${item.id}`,
+                    city: item.city,
+                    date: item.prediction_date,
+                    slot: item.time_range,
+                    flow: item.flow_per_hour,
+                    speed: parseFloat(item.avg_speed || 0).toFixed(1),
+                    congestion: parseFloat(item.congestion_index || 0).toFixed(2),
+                    severity: item.severity,
+                    weather: item.weather || '晴',  // 添加天气字段
+                }));
+
+                // 移除模拟数据逻辑，真实显示用户数据
+                // 如果没有数据就显示空，不再生成假数据
+
+                // 只在初次加载或者选择"全部"时更新城市列表
+                if (cityVal === 'all') {
+                    if (summaryRes.cities && summaryRes.cities.length) {
+                        allCities = summaryRes.cities;
+                    } else {
+                        allCities = [...new Set(historyData.map(d => d.city))];
+                    }
+                    populateCityOptions(allCities);
+                }
+                // 如果筛选特定城市，保持城市列表不变，只更新选中状态
+            } catch (err){
+                console.error('获取历史记录失败:', err);
+                // 不再使用模拟数据，直接显示空
+                historyData = [];
+                baseSummary = {
+                    total_count: 0,
+                    avg_flow: 0,
+                    avg_speed: 0,
+                    avg_congestion: 0,
+                    cities: []
+                };
+                allCities = [];
+                populateCityOptions(allCities);
+            }
+
+            // 初始化 filteredData
+            filteredData = historyData;
+            renderHistory();
+        }
+
+        function calcMetrics(data, summary){
+            if (summary) {
+                $('#metric-total').text(summary.total_count ?? data.length);
+                $('#metric-flow').text(Math.round(summary.avg_flow ?? 0));
+                $('#metric-speed').text((summary.avg_speed ?? 0).toFixed(1));
+                $('#metric-index').text((summary.avg_congestion ?? 0).toFixed(2));
+            } else {
+                const total = data.length;
+                const avgFlow = total ? data.reduce((s, d)=>s+d.flow,0)/total : 0;
+                const avgSpeed = total ? data.reduce((s, d)=>s+parseFloat(d.speed),0)/total : 0;
+                const avgIndex = total ? data.reduce((s, d)=>s+d.congestion,0)/total : 0;
+                $('#metric-total').text(total);
+                $('#metric-flow').text(Math.round(avgFlow));
+                $('#metric-speed').text(avgSpeed.toFixed(1));
+                $('#metric-index').text(avgIndex.toFixed(2));
+            }
+        }
+
+        function renderHistory(){
+            const searchVal = $('#searchInput').val().toLowerCase();
+
+            filteredData = historyData.filter(item => {
+                if (!searchVal) return true;
+                return (`${item.city}${item.slot}${item.id}`).toLowerCase().includes(searchVal);
+            });
+
+            const useSummary = searchVal ? null : baseSummary;
+            calcMetrics(filteredData, useSummary);
+            renderCharts(filteredData);
+            
+            // 重置到第一页
+            currentPage = 1;
+            renderTable();
+            renderPagination();
+        }
+
+        function renderTable(){
+            const tbody = $('#historyTable');
+            
+            if (!filteredData.length){
+                tbody.html('<tr><td colspan="8" class="text-center text-muted">暂无数据</td></tr>');
+                updatePaginationInfo(0, 0, 0);
+                return;
+            }
+            
+            // 计算分页
+            const startIdx = (currentPage - 1) * pageSize;
+            const endIdx = Math.min(startIdx + pageSize, filteredData.length);
+            const pageData = filteredData.slice(startIdx, endIdx);
+            
+            const html = pageData.map(item=>{
+                const badgeClass = item.congestion > 0.7 ? 'bad' : (item.congestion > 0.5 ? 'medium' : 'good');
+                const recordId = item.id.replace('pred-', '');
+                return `<tr>
+                    <td>${item.id}</td>
+                    <td>${item.city}</td>
+                    <td>${item.date}</td>
+                    <td>${item.slot}</td>
+                    <td>${item.flow}</td>
+                    <td>${item.speed}</td>
+                    <td><span class="badge-status ${badgeClass}">${item.congestion}</span></td>
+                    <td class="table-actions"><a href="#" class="view-detail" data-id="${recordId}" data-full-item='${JSON.stringify(item)}'>查看详情</a></td>
+                </tr>`;
+            }).join('');
+            tbody.html(html);
+            
+            // 更新分页信息
+            updatePaginationInfo(startIdx + 1, endIdx, filteredData.length);
+            
+            // 绑定查看详情事件
+            $('.view-detail').on('click', function(e){
+                e.preventDefault();
+                const recordId = $(this).data('id');
+                const itemData = $(this).data('full-item');
+                showDetailModal(recordId, itemData);
+            });
+        }
+
+        function updatePaginationInfo(start, end, total) {
+            $('#pageStart').text(start);
+            $('#pageEnd').text(end);
+            $('#totalRecords').text(total);
+        }
+
+        function renderPagination() {
+            const totalPages = Math.ceil(filteredData.length / pageSize);
+            const container = $('#paginationButtons');
+            container.empty();
+            
+            if (totalPages <= 1 || filteredData.length === 0) {
+                return;
+            }
+            
+            // 上一页按钮
+            const prevBtn = $('<button>').text('上一页')
+                .prop('disabled', currentPage === 1)
+                .on('click', () => {
+                    if (currentPage > 1) {
+                        currentPage--;
+                        renderTable();
+                        renderPagination();
+                    }
+                });
+            container.append(prevBtn);
+            
+            // 页码按钮
+            const maxButtons = 7; // 最多显示7个页码按钮
+            let startPage = Math.max(1, currentPage - 3);
+            let endPage = Math.min(totalPages, startPage + maxButtons - 1);
+            
+            if (endPage - startPage < maxButtons - 1) {
+                startPage = Math.max(1, endPage - maxButtons + 1);
+            }
+            
+            // 第一页
+            if (startPage > 1) {
+                const btn = $('<button>').text('1').on('click', () => {
+                    currentPage = 1;
+                    renderTable();
+                    renderPagination();
+                });
+                container.append(btn);
+                
+                if (startPage > 2) {
+                    container.append($('<button>').text('...').prop('disabled', true));
+                }
+            }
+            
+            // 中间页码
+            for (let i = startPage; i <= endPage; i++) {
+                const btn = $('<button>').text(i)
+                    .toggleClass('active', i === currentPage)
+                    .on('click', function() {
+                        currentPage = i;
+                        renderTable();
+                        renderPagination();
+                    });
+                container.append(btn);
+            }
+            
+            // 最后一页
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                    container.append($('<button>').text('...').prop('disabled', true));
+                }
+                
+                const btn = $('<button>').text(totalPages).on('click', () => {
+                    currentPage = totalPages;
+                    renderTable();
+                    renderPagination();
+                });
+                container.append(btn);
+            }
+            
+            // 下一页按钮
+            const nextBtn = $('<button>').text('下一页')
+                .prop('disabled', currentPage === totalPages)
+                .on('click', () => {
+                    if (currentPage < totalPages) {
+                        currentPage++;
+                        renderTable();
+                        renderPagination();
+                    }
+                });
+            container.append(nextBtn);
+        }
+
+        function populateCityOptions(cities){
+            const uniqueCities = [...new Set((cities || []).filter(Boolean))];
+            const select = $('#cityFilter');
+            const currentVal = select.val() || 'all';
+            
+            // 只有在城市列表真的改变时才重新填充
+            const existingOptions = [];
+            select.find('option').each(function() {
+                if ($(this).val() !== 'all') {
+                    existingOptions.push($(this).val());
+                }
+            });
+            
+            // 比较城市列表是否相同
+            const citiesChanged = JSON.stringify(existingOptions.sort()) !== JSON.stringify(uniqueCities.sort());
+            
+            if (citiesChanged || select.find('option').length <= 1) {
+                select.empty();
+                select.append('<option value="all">全部城市</option>');
+                uniqueCities.forEach(c=> select.append(`<option value="${c}">${c}</option>`));
+                
+                if (currentVal !== 'all' && !uniqueCities.includes(currentVal)) {
+                    select.val('all');
+                } else {
+                    select.val(currentVal);
+                }
+            }
+        }
+
+        function renderCharts(data){
+            const ordered = [...data].sort((a,b)=> new Date(a.date) - new Date(b.date));
+            const labels = ordered.map(d=>d.date);
+            const flowValues = ordered.map(d=>d.flow);
+            const congestionValues = ordered.map(d=>d.congestion);
+
+            $('#flowChartRange').text(`共 ${ordered.length} 条记录`);
+            $('#congestionChartRange').text(`共 ${ordered.length} 条记录`);
+
+            const flowChart = echarts.init(document.getElementById('flowChart'));
+            flowChart.setOption({
+                tooltip:{trigger:'axis'},
+                xAxis:{ type:'category', data:labels, boundaryGap:false, axisLine:{lineStyle:{color:'#475569'}}, axisLabel:{color:'#94a3b8'} },
+                yAxis:{ type:'value', axisLine:{lineStyle:{color:'#475569'}}, splitLine:{lineStyle:{color:'rgba(148,163,184,.2)'}}, axisLabel:{color:'#94a3b8'} },
+                series:[{ data:flowValues, type:'line', smooth:true, symbolSize:6, lineStyle:{color:'#60a5fa', width:3}, areaStyle:{color:'rgba(96,165,250,0.15)'} }]
+            });
+
+            const congestionChart = echarts.init(document.getElementById('congestionChart'));
+            congestionChart.setOption({
+                tooltip:{trigger:'axis'},
+                xAxis:{ type:'category', data:labels, boundaryGap:false, axisLine:{lineStyle:{color:'#475569'}}, axisLabel:{color:'#94a3b8'} },
+                yAxis:{ type:'value', min:0, max:1, axisLine:{lineStyle:{color:'#475569'}}, splitLine:{lineStyle:{color:'rgba(148,163,184,.2)'}}, axisLabel:{color:'#94a3b8'} },
+                series:[{ data:congestionValues, type:'line', smooth:true, symbol:'circle', symbolSize:6, lineStyle:{color:'#fbbf24', width:3}, areaStyle:{color:'rgba(251,191,36,0.15)'} }]
+            });
+        }
+
+
+        // 显示详情模态框
+        let detailGaugeChart = null;
+        let detailCongestionGaugeChart = null;
+        let detailSpeedLiquidChart = null;
+
+        async function showDetailModal(recordId, itemData) {
+            // 显示模态框
+            const modalElement = document.getElementById('detailModal');
+            const modal = new bootstrap.Modal(modalElement);
+            
+            // 监听模态框显示完成事件
+            $(modalElement).one('shown.bs.modal', function() {
+                // 模态框显示完成后渲染所有图表
+                renderDetailCongestionGauge(itemData.congestion, itemData.severity);
+                renderDetailSpeedLiquid(itemData.speed);
+                renderDetailGauge(itemData.flow);
+            });
+            
+            modal.show();
+
+            // 填充基本信息
+            const basicInfo = [
+                {label: '城市', value: itemData.city},
+                {label: '预测日期', value: itemData.date},
+                {label: '时间段', value: itemData.slot},
+                {label: '天气条件', value: itemData.weather || '晴'},
+                {label: '记录ID', value: itemData.id},
+            ];
+            
+            const basicInfoHtml = basicInfo.map((x, idx) => {
+                // 前3个用col-md-4，后2个用col-md-6
+                const colClass = idx < 3 ? 'col-md-4' : 'col-md-6';
+                return `
+                <div class="${colClass} col-sm-6">
+                    <div class="detail-label">${x.label}</div>
+                    <div class="detail-value">${x.value}</div>
+                </div>
+                `;
+            }).join('');
+            $('#detailBasicInfo').html(basicInfoHtml);
+
+            // 填充预测结果
+            $('#detailFlow').text(itemData.flow || '-');
+            $('#detailSpeed').text(itemData.speed || '-');
+            $('#detailCongestion').text(itemData.congestion || '-');
+            $('#detailSeverity').text(itemData.severity || getSeverityLabel(itemData.congestion));
+
+            // 获取天气信息（优先使用表格数据中的weather）
+            const weather = itemData.weather || '晴';
+
+            // 尝试从API获取完整数据
+            try {
+                const token = getAuthToken();
+                const detailRes = await $.ajax({
+                    url: `${API_BASE_URL}/city/history/detail/${recordId}`,
+                    method: 'GET',
+                    data: { token }
+                });
+                
+                if (detailRes) {
+                    // 更新详细信息，使用实际的天气信息
+                    if (detailRes.monitors) {
+                        renderDetailMonitors(detailRes.monitors, weather);
+                    }
+                }
+            } catch (err) {
+                console.warn('无法获取完整历史详情，使用基础数据', err);
+                // 使用模拟数据，传入实际的天气信息
+                renderDetailMonitors(generateMockMonitors(itemData.city), weather);
+            }
+        }
+
+        function getSeverityLabel(congestion) {
+            const val = parseFloat(congestion);
+            if (val >= 0.7) return '严重拥堵';
+            if (val >= 0.5) return '轻度拥堵';
+            if (val >= 0.3) return '缓行';
+            return '畅通';
+        }
+
+        function renderDetailCongestionGauge(congestionValue, severity) {
+            const container = document.getElementById('detailCongestionGauge');
+            
+            // 销毁旧图表实例
+            if (detailCongestionGaugeChart) {
+                detailCongestionGaugeChart.dispose();
+            }
+            detailCongestionGaugeChart = echarts.init(container);
+            
+            const congestionVal = parseFloat(congestionValue) || 0;
+            const severityText = severity || getSeverityLabel(congestionVal);
+            
+            // 根据拥堵等级设置颜色
+            let congestionColor = '#22c55e'; // 畅通-绿色
+            if (congestionVal >= 0.8) {
+                congestionColor = '#ef4444'; // 严重拥堵-红色
+            } else if (congestionVal >= 0.6) {
+                congestionColor = '#f97316'; // 中度拥堵-橙色
+            } else if (congestionVal >= 0.4) {
+                congestionColor = '#eab308'; // 轻度拥堵-黄色
+            }
+            
+            detailCongestionGaugeChart.setOption({
+                backgroundColor: 'transparent',
+                series: [{
+                    type: 'gauge',
+                    startAngle: 90,
+                    endAngle: -270,
+                    radius: '80%',
+                    min: 0,
+                    max: 1,
+                    splitNumber: 10,
+                    pointer: {
+                        show: false
+                    },
+                    progress: {
+                        show: true,
+                        overlap: false,
+                        roundCap: true,
+                        clip: false,
+                        itemStyle: {
+                            color: congestionColor,
+                            shadowBlur: 20,
+                            shadowColor: congestionColor
+                        }
+                    },
+                    axisLine: {
+                        lineStyle: {
+                            width: 18,
+                            color: [[1, 'rgba(255,255,255,0.1)']]
+                        }
+                    },
+                    splitLine: {
+                        show: true,
+                        distance: -20,
+                        length: 10,
+                        lineStyle: {
+                            color: 'rgba(255,255,255,0.3)',
+                            width: 2
+                        }
+                    },
+                    axisTick: {
+                        show: true,
+                        distance: -18,
+                        length: 5,
+                        lineStyle: {
+                            color: 'rgba(255,255,255,0.2)',
+                            width: 1
+                        }
+                    },
+                    axisLabel: {
+                        show: true,
+                        distance: 30,
+                        color: '#94a3b8',
+                        fontSize: 10,
+                        formatter: function(value) {
+                            return value.toFixed(1);
+                        }
+                    },
+                    data: [{
+                        value: congestionVal,
+                        name: severityText,
+                        title: {
+                            offsetCenter: ['0%', '-15%'],
+                            fontSize: 16,
+                            color: '#e2e8f0'
+                        },
+                        detail: {
+                            offsetCenter: ['0%', '20%'],
+                            valueAnimation: true,
+                            formatter: function(value) {
+                                return value.toFixed(3);
+                            },
+                            fontSize: 32,
+                            fontWeight: 'bold',
+                            color: congestionColor
+                        }
+                    }],
+                    title: {
+                        fontSize: 16,
+                        color: '#e2e8f0'
+                    },
+                    detail: {
+                        fontSize: 32,
+                        fontWeight: 'bold',
+                        color: congestionColor
+                    }
+                }],
+                animationDuration: 2000,
+                animationEasing: 'cubicOut'
+            });
+        }
+
+        function renderDetailSpeedLiquid(speedValue) {
+            const container = document.getElementById('detailSpeedLiquid');
+            
+            // 销毁旧图表实例
+            if (detailSpeedLiquidChart) {
+                detailSpeedLiquidChart.dispose();
+            }
+            detailSpeedLiquidChart = echarts.init(container);
+            
+            const avgSpeed = parseFloat(speedValue) || 0;
+            const speedPercent = avgSpeed / 100; // 转换为百分比（假设最大速度100km/h）
+            
+            // 根据速度设置颜色
+            let speedColor = '#ef4444'; // 低速-红色
+            if (avgSpeed >= 50) {
+                speedColor = '#22c55e'; // 高速-绿色
+            } else if (avgSpeed >= 30) {
+                speedColor = '#eab308'; // 中速-黄色
+            }
+            
+            detailSpeedLiquidChart.setOption({
+                backgroundColor: 'transparent',
+                series: [{
+                    type: 'liquidFill',
+                    radius: '80%',
+                    center: ['50%', '50%'],
+                    data: [speedPercent, speedPercent * 0.95, speedPercent * 0.9],
+                    color: [
+                        {
+                            type: 'linear',
+                            x: 0, y: 0, x2: 0, y2: 1,
+                            colorStops: [
+                                { offset: 0, color: speedColor },
+                                { offset: 1, color: speedColor + '80' }
+                            ]
+                        }
+                    ],
+                    backgroundStyle: {
+                        color: 'rgba(255,255,255,0.05)',
+                        borderWidth: 2,
+                        borderColor: 'rgba(255,255,255,0.1)'
+                    },
+                    label: {
+                        fontSize: 32,
+                        fontWeight: 'bold',
+                        color: '#e2e8f0',
+                        formatter: function() {
+                            return avgSpeed.toFixed(1) + '\nkm/h';
+                        }
+                    },
+                    outline: {
+                        show: true,
+                        borderDistance: 4,
+                        itemStyle: {
+                            borderWidth: 2,
+                            borderColor: 'rgba(255,255,255,0.2)'
+                        }
+                    },
+                    waveAnimation: true,
+                    animationDuration: 3000,
+                    animationEasing: 'cubicOut'
+                }]
+            });
+        }
+
+        function renderDetailGauge(flowValue) {
+            const container = document.getElementById('detailGauge');
+            
+            // 销毁旧图表实例，重新创建
+            if (detailGaugeChart) {
+                detailGaugeChart.dispose();
+            }
+            detailGaugeChart = echarts.init(container);
+            
+            detailGaugeChart.setOption({
+                backgroundColor: 'transparent',
+                series: [{
+                    type: 'gauge',
+                    min: 0,
+                    max: 15000,
+                    radius: '90%',
+                    center: ['50%', '55%'],
+                    startAngle: 200,
+                    endAngle: -20,
+                    axisLine: {
+                        lineStyle: {
+                            width: 25,
+                            color: [[0.3, '#22c55e'], [0.7, '#eab308'], [1, '#ef4444']]
+                        }
+                    },
+                    pointer: {
+                        length: '60%',
+                        width: 6,
+                        itemStyle: {
+                            color: '#60a5fa'
+                        }
+                    },
+                    axisTick: {
+                        distance: -25,
+                        length: 8,
+                        lineStyle: {
+                            color: '#fff',
+                            width: 2
+                        }
+                    },
+                    splitLine: {
+                        distance: -25,
+                        length: 15,
+                        lineStyle: {
+                            color: '#fff',
+                            width: 3
+                        }
+                    },
+                    axisLabel: {
+                        color: '#94a3b8',
+                        distance: 35,
+                        fontSize: 14,
+                        formatter: function(value) {
+                            return Math.round(value / 1000) + 'k';
+                        }
+                    },
+                    detail: {
+                        valueAnimation: true,
+                        formatter: '{value} 辆/小时',
+                        color: '#e2e8f0',
+                        fontSize: 20,
+                        fontWeight: 'bold',
+                        offsetCenter: [0, '75%']
+                    },
+                    title: {
+                        show: true,
+                        offsetCenter: [0, '95%'],
+                        fontSize: 14,
+                        color: '#94a3b8'
+                    },
+                    data: [{value: flowValue || 0, name: '交通流量预测值'}]
+                }]
+            });
+        }
+
+        // 图片目录数据（从image_catalog.json）
+        const imageCatalog = {
+            'dusttornado': ["dusttornado-001.jpg","dusttornado-002.jpg","dusttornado-003.jpg","dusttornado-004.jpg","dusttornado-005.jpg","dusttornado-006.jpg","dusttornado-007.jpg","dusttornado-008.jpg","dusttornado-010.jpg","dusttornado-012.jpg","dusttornado-013.jpg","dusttornado-014.jpg","dusttornado-015.jpg","dusttornado-016.jpg","dusttornado-017.jpg","dusttornado-018.jpg","dusttornado-019.jpg","dusttornado-020.jpg","dusttornado-021.jpg","dusttornado-022.jpg","dusttornado-023.jpg","dusttornado-024.jpg","dusttornado-025.jpg","dusttornado-026.jpg","dusttornado-027.jpg","dusttornado-029.jpg","dusttornado-030.jpg","dusttornado-031.jpg","dusttornado-032.jpg","dusttornado-033.jpg","dusttornado-034.jpg","dusttornado-035.jpg","dusttornado-036.jpg","dusttornado-038.jpg","dusttornado-909.jpg","dusttornado-937.jpg"],
+            'mist': ["mist-001.jpg","mist-002.jpg","mist-003.jpg","mist-009.jpg","mist-013.jpg","mist-015.jpg","mist-016.jpg","mist-019.jpg","mist-020.jpg","mist-021.jpg","mist-023.jpg","mist-024.jpg","mist-027.jpg","mist-030.jpg","mist-033.jpg","mist-034.jpg","mist-035.jpg","mist-039.jpg","mist-041.jpg","mist-042.jpg","mist-043.jpg","mist-046.jpg","mist-048.jpg","mist-049.jpg","mist-052.jpg","mist-053.jpg","mist-057.jpg","mist-059.jpg","mist-061.jpg","mist-062.jpg","mist-063.jpg","mist-064.jpg","mist-067.jpg","mist-068.jpg","mist-071.jpg","mist-072.jpg","mist-074.jpg","mist-075.jpg","mist-080.jpg","mist-084.jpg","mist-088.jpg","mist-098.jpg","mist-101.jpg","mist-105.jpg","mist-109.jpg","mist-110.jpg","mist-111.jpg","mist-114.jpg","mist-115.jpg","mist-117.jpg","mist-119.jpg","mist-120.jpg","mist-121.jpg","mist-122.jpg","mist-123.jpg","mist-124.jpg","mist-133.jpg","mist-137.jpg","mist-138.jpg","mist-140.jpg","mist-141.jpg","mist-142.jpg","mist-143.jpg","mist-145.jpg","mist-147.jpg","mist-148.jpg","mist-149.jpg","mist-150.jpg","mist-152.jpg","mist-158.jpg","mist-161.jpg","mist-163.jpg","mist-168.jpg","mist-176.jpg","mist-180.jpg","mist-189.jpg","mist-190.jpg","mist-922.jpg","mist-938.jpg","mist-955.jpg","mist-966.jpg","mist-971.jpg"],
+            'foggy': ["foggy-001.jpg","foggy-002.jpg","foggy-003.jpg","foggy-004.jpg","foggy-006.jpg","foggy-007.jpg","foggy-008.jpg","foggy-009.jpg","foggy-010.jpg","foggy-011.jpg","foggy-012.jpg","foggy-014.jpg","foggy-015.jpg","foggy-016.jpg","foggy-017.jpg","foggy-018.jpg","foggy-019.jpg","foggy-020.jpg","foggy-022.jpg","foggy-023.jpg","foggy-024.jpg","foggy-025.jpg","foggy-026.jpg","foggy-027.jpg","foggy-028.jpg","foggy-029.jpg","foggy-030.jpg","foggy-031.jpg","foggy-033.jpg","foggy-034.jpg","foggy-035.jpg","foggy-036.jpg","foggy-037.jpg","foggy-038.jpg","foggy-039.jpg","foggy-040.jpg","foggy-041.jpg","foggy-042.jpg","foggy-043.jpg","foggy-044.jpg","foggy-045.jpg","foggy-046.jpg","foggy-047.jpg","foggy-048.jpg","foggy-049.jpg","foggy-050.jpg","foggy-051.jpg","foggy-053.jpg","foggy-055.jpg","foggy-056.jpg","foggy-057.jpg","foggy-058.jpg","foggy-059.jpg","foggy-060.jpg","foggy-061.jpg","foggy-062.jpg","foggy-063.jpg","foggy-064.jpg","foggy-065.jpg","foggy-066.jpg","foggy-067.jpg","foggy-068.jpg","foggy-069.jpg","foggy-070.jpg","foggy-072.jpg","foggy-073.jpg","foggy-074.jpg","foggy-075.jpg","foggy-076.jpg","foggy-077.jpg","foggy-078.jpg","foggy-079.jpg","foggy-080.jpg","foggy-081.jpg","foggy-083.jpg","foggy-084.jpg","foggy-085.jpg","foggy-086.jpg","foggy-087.jpg","foggy-088.jpg","foggy-089.jpg","foggy-090.jpg","foggy-091.jpg","foggy-092.jpg","foggy-093.jpg","foggy-094.jpg","foggy-095.jpg","foggy-096.jpg","foggy-097.jpg","foggy-098.jpg","foggy-099.jpg","foggy-100.jpg","foggy-102.jpg","foggy-103.jpg","foggy-104.jpg","foggy-105.jpg","foggy-106.jpg","foggy-107.jpg","foggy-108.jpg","foggy-109.jpg","foggy-111.jpg","foggy-112.jpg","foggy-113.jpg","foggy-114.jpg"],
+            'rain_storm': ["rain_storm-001.jpg","rain_storm-002.jpg","rain_storm-003.jpg","rain_storm-004.jpg","rain_storm-005.jpg","rain_storm-006.jpg","rain_storm-007.jpg","rain_storm-008.jpg","rain_storm-009.jpg","rain_storm-010.jpg","rain_storm-011.jpg","rain_storm-012.jpg","rain_storm-013.jpg","rain_storm-014.jpg","rain_storm-015.jpg","rain_storm-016.jpg","rain_storm-017.jpg","rain_storm-018.jpg","rain_storm-019.jpg","rain_storm-020.jpg","rain_storm-022.jpg","rain_storm-026.jpg","rain_storm-030.jpg","rain_storm-034.jpg","rain_storm-038.jpg","rain_storm-042.jpg","rain_storm-046.jpg","rain_storm-050.jpg","rain_storm-054.jpg","rain_storm-058.jpg","rain_storm-062.jpg","rain_storm-066.jpg","rain_storm-070.jpg","rain_storm-074.jpg","rain_storm-078.jpg","rain_storm-082.jpg","rain_storm-086.jpg","rain_storm-090.jpg","rain_storm-094.jpg","rain_storm-105.jpg","rain_storm-106.jpg","rain_storm-110.jpg","rain_storm-114.jpg","rain_storm-118.jpg","rain_storm-122.jpg","rain_storm-126.jpg","rain_storm-130.jpg","rain_storm-134.jpg","rain_storm-138.jpg","rain_storm-142.jpg","rain_storm-146.jpg","rain_storm-150.jpg","rain_storm-154.jpg","rain_storm-158.jpg","rain_storm-162.jpg","rain_storm-168.jpg","rain_storm-172.jpg","rain_storm-176.jpg","rain_storm-180.jpg","rain_storm-186.jpg","rain_storm-191.jpg","rain_storm-195.jpg","rain_storm-199.jpg","rain_storm-203.jpg","rain_storm-207.jpg","rain_storm-213.jpg","rain_storm-219.jpg","rain_storm-225.jpg","rain_storm-229.jpg","rain_storm-233.jpg","rain_storm-237.jpg","rain_storm-241.jpg","rain_storm-245.jpg","rain_storm-249.jpg","rain_storm-253.jpg","rain_storm-257.jpg","rain_storm-261.jpg","rain_storm-265.jpg","rain_storm-269.jpg","rain_storm-273.jpg","rain_storm-277.jpg","rain_storm-283.jpg","rain_storm-289.jpg","rain_storm-293.jpg","rain_storm-297.jpg","rain_storm-301.jpg","rain_storm-305.jpg","rain_storm-311.jpg","rain_storm-315.jpg","rain_storm-319.jpg","rain_storm-323.jpg","rain_storm-327.jpg","rain_storm-339.jpg","rain_storm-343.jpg","rain_storm-351.jpg","rain_storm-355.jpg","rain_storm-361.jpg","rain_storm-365.jpg","rain_storm-377.jpg","rain_storm-381.jpg","rain_storm-385.jpg","rain_storm-391.jpg","rain_storm-395.jpg","rain_storm-399.jpg","rain_storm-403.jpg","rain_storm-407.jpg","rain_storm-415.jpg","rain_storm-419.jpg","rain_storm-423.jpg","rain_storm-427.jpg","rain_storm-431.jpg","rain_storm-435.jpg","rain_storm-439.jpg","rain_storm-443.jpg","rain_storm-447.jpg","rain_storm-450.jpg","rain_storm-454.jpg","rain_storm-458.jpg","rain_storm-462.jpg","rain_storm-466.jpg","rain_storm-475.jpg","rain_storm-481.jpg","rain_storm-485.jpg","rain_storm-489.jpg","rain_storm-493.jpg","rain_storm-497.jpg","rain_storm-501.jpg","rain_storm-515.jpg","rain_storm-519.jpg","rain_storm-523.jpg","rain_storm-527.jpg","rain_storm-536.jpg","rain_storm-549.jpg","rain_storm-553.jpg","rain_storm-563.jpg","rain_storm-568.jpg","rain_storm-572.jpg","rain_storm-576.jpg","rain_storm-580.jpg","rain_storm-589.jpg","rain_storm-593.jpg","rain_storm-597.jpg","rain_storm-601.jpg","rain_storm-605.jpg","rain_storm-610.jpg","rain_storm-614.jpg","rain_storm-618.jpg","rain_storm-622.jpg","rain_storm-626.jpg","rain_storm-630.jpg","rain_storm-634.jpg","rain_storm-638.jpg","rain_storm-642.jpg","rain_storm-646.jpg","rain_storm-650.jpg","rain_storm-654.jpg","rain_storm-658.jpg","rain_storm-662.jpg","rain_storm-667.jpg","rain_storm-676.jpg","rain_storm-681.jpg","rain_storm-685.jpg","rain_storm-688.jpg","rain_storm-692.jpg","rain_storm-696.jpg","rain_storm-700.jpg","rain_storm-704.jpg","rain_storm-708.jpg","rain_storm-712.jpg","rain_storm-720.jpg","rain_storm-724.jpg","rain_storm-732.jpg","rain_storm-736.jpg","rain_storm-740.jpg","rain_storm-744.jpg","rain_storm-748.jpg","rain_storm-757.jpg","rain_storm-766.jpg","rain_storm-775.jpg","rain_storm-779.jpg","rain_storm-783.jpg","rain_storm-787.jpg","rain_storm-789.jpg","rain_storm-807.jpg","rain_storm-811.jpg","rain_storm-815.jpg","rain_storm-823.jpg","rain_storm-835.jpg","rain_storm-839.jpg","rain_storm-843.jpg","rain_storm-847.jpg","rain_storm-851.jpg","rain_storm-855.jpg","rain_storm-859.jpg","rain_storm-863.jpg","rain_storm-901.jpg","rain_storm-932.jpg","rain_storm-939.jpg","rain_storm-981.jpg","rain_storm-985.jpg"],
+            'snow_storm': ["snow_storm-001.jpg","snow_storm-002.jpg","snow_storm-003.jpg","snow_storm-004.jpg","snow_storm-005.jpg","snow_storm-006.jpg","snow_storm-007.jpg","snow_storm-008.jpg","snow_storm-009.jpg","snow_storm-010.jpg","snow_storm-011.jpg","snow_storm-012.jpg","snow_storm-013.jpg","snow_storm-014.jpg","snow_storm-016.jpg","snow_storm-017.jpg","snow_storm-018.jpg","snow_storm-019.jpg","snow_storm-020.jpg","snow_storm-021.jpg","snow_storm-022.jpg","snow_storm-023.jpg","snow_storm-024.jpg","snow_storm-025.jpg","snow_storm-026.jpg","snow_storm-027.jpg","snow_storm-028.jpg","snow_storm-029.jpg","snow_storm-040.jpg","snow_storm-041.jpg","snow_storm-043.jpg","snow_storm-044.jpg","snow_storm-045.jpg","snow_storm-046.jpg","snow_storm-047.jpg","snow_storm-048.jpg","snow_storm-049.jpg","snow_storm-050.jpg","snow_storm-051.jpg","snow_storm-052.jpg","snow_storm-053.jpg","snow_storm-054.jpg","snow_storm-055.jpg","snow_storm-056.jpg","snow_storm-057.jpg","snow_storm-059.jpg","snow_storm-060.jpg","snow_storm-061.jpg","snow_storm-062.jpg","snow_storm-063.jpg","snow_storm-065.jpg","snow_storm-066.jpg","snow_storm-067.jpg","snow_storm-068.jpg","snow_storm-069.jpg","snow_storm-070.jpg","snow_storm-071.jpg","snow_storm-072.jpg","snow_storm-073.jpg","snow_storm-074.jpg","snow_storm-075.jpg","snow_storm-076.jpg","snow_storm-077.jpg","snow_storm-078.jpg","snow_storm-079.jpg","snow_storm-082.jpg","snow_storm-083.jpg","snow_storm-084.jpg","snow_storm-085.jpg","snow_storm-086.jpg","snow_storm-087.jpg","snow_storm-088.jpg","snow_storm-089.jpg","snow_storm-090.jpg","snow_storm-091.jpg","snow_storm-092.jpg","snow_storm-093.jpg","snow_storm-094.jpg","snow_storm-095.jpg","snow_storm-096.jpg","snow_storm-097.jpg","snow_storm-101.jpg","snow_storm-103.jpg","snow_storm-105.jpg","snow_storm-107.jpg","snow_storm-109.jpg","snow_storm-111.jpg","snow_storm-113.jpg","snow_storm-115.jpg","snow_storm-117.jpg","snow_storm-119.jpg","snow_storm-121.jpg","snow_storm-125.jpg","snow_storm-127.jpg","snow_storm-129.jpg","snow_storm-131.jpg","snow_storm-133.jpg","snow_storm-135.jpg","snow_storm-137.jpg","snow_storm-139.jpg","snow_storm-141.jpg","snow_storm-143.jpg","snow_storm-145.jpg","snow_storm-147.jpg","snow_storm-149.jpg","snow_storm-151.jpg","snow_storm-153.jpg","snow_storm-156.jpg","snow_storm-158.jpg","snow_storm-160.jpg","snow_storm-162.jpg","snow_storm-164.jpg","snow_storm-166.jpg","snow_storm-168.jpg","snow_storm-170.jpg","snow_storm-172.jpg","snow_storm-176.jpg","snow_storm-178.jpg","snow_storm-180.jpg","snow_storm-182.jpg","snow_storm-184.jpg","snow_storm-186.jpg","snow_storm-188.jpg","snow_storm-190.jpg","snow_storm-196.jpg","snow_storm-200.jpg","snow_storm-202.jpg","snow_storm-204.jpg","snow_storm-206.jpg","snow_storm-209.jpg","snow_storm-213.jpg","snow_storm-215.jpg","snow_storm-217.jpg","snow_storm-219.jpg","snow_storm-221.jpg","snow_storm-223.jpg","snow_storm-225.jpg","snow_storm-227.jpg","snow_storm-229.jpg","snow_storm-233.jpg","snow_storm-235.jpg","snow_storm-237.jpg","snow_storm-239.jpg","snow_storm-241.jpg","snow_storm-243.jpg","snow_storm-245.jpg","snow_storm-247.jpg","snow_storm-251.jpg","snow_storm-253.jpg","snow_storm-255.jpg","snow_storm-257.jpg","snow_storm-259.jpg","snow_storm-261.jpg","snow_storm-263.jpg","snow_storm-265.jpg","snow_storm-267.jpg","snow_storm-269.jpg","snow_storm-271.jpg","snow_storm-273.jpg","snow_storm-275.jpg","snow_storm-279.jpg","snow_storm-281.jpg","snow_storm-283.jpg","snow_storm-285.jpg","snow_storm-289.jpg","snow_storm-291.jpg","snow_storm-293.jpg","snow_storm-295.jpg","snow_storm-297.jpg","snow_storm-299.jpg","snow_storm-301.jpg","snow_storm-303.jpg","snow_storm-305.jpg","snow_storm-307.jpg","snow_storm-309.jpg","snow_storm-311.jpg","snow_storm-313.jpg","snow_storm-317.jpg","snow_storm-321.jpg","snow_storm-323.jpg","snow_storm-325.jpg","snow_storm-327.jpg","snow_storm-329.jpg","snow_storm-331.jpg","snow_storm-333.jpg","snow_storm-335.jpg","snow_storm-337.jpg","snow_storm-339.jpg","snow_storm-341.jpg","snow_storm-343.jpg","snow_storm-347.jpg","snow_storm-349.jpg","snow_storm-350.jpg","snow_storm-352.jpg","snow_storm-354.jpg","snow_storm-356.jpg","snow_storm-358.jpg","snow_storm-360.jpg","snow_storm-362.jpg","snow_storm-368.jpg","snow_storm-370.jpg","snow_storm-372.jpg","snow_storm-374.jpg","snow_storm-376.jpg"],
+            'haze': ["haze-002.jpg","haze-003.jpg","haze-004.jpg","haze-005.jpg","haze-006.jpg","haze-007.jpg","haze-009.jpg","haze-010.jpg","haze-011.jpg","haze-012.jpg","haze-013.jpg","haze-016.jpg","haze-018.jpg","haze-019.jpg","haze-020.jpg","haze-021.jpg","haze-022.jpg","haze-023.jpg","haze-024.jpg","haze-026.jpg","haze-027.jpg","haze-028.jpg","haze-029.jpg","haze-030.jpg","haze-031.jpg","haze-032.jpg","haze-033.jpg","haze-036.jpg","haze-037.jpg","haze-038.jpg","haze-039.jpg","haze-040.jpg","haze-041.jpg","haze-042.jpg","haze-043.jpg","haze-044.jpg","haze-045.jpg","haze-046.jpg","haze-048.jpg","haze-049.jpg","haze-050.jpg","haze-051.jpg","haze-053.jpg","haze-054.jpg","haze-056.jpg","haze-057.jpg","haze-058.jpg","haze-059.jpg","haze-060.jpg","haze-061.jpg","haze-063.jpg","haze-064.jpg","haze-065.jpg","haze-066.jpg","haze-067.jpg","haze-068.jpg","haze-069.jpg","haze-071.jpg","haze-072.jpg","haze-074.jpg","haze-075.jpg","haze-077.jpg","haze-078.jpg","haze-080.jpg","haze-081.jpg","haze-082.jpg","haze-083.jpg","haze-084.jpg","haze-085.jpg","haze-086.jpg","haze-087.jpg","haze-088.jpg","haze-090.jpg","haze-091.jpg","haze-092.jpg","haze-093.jpg","haze-094.jpg","haze-095.jpg","haze-096.jpg","haze-097.jpg","haze-098.jpg","haze-099.jpg","haze-100.jpg","haze-101.jpg","haze-102.jpg","haze-103.jpg","haze-104.jpg","haze-105.jpg","haze-106.jpg","haze-109.jpg","haze-110.jpg","haze-111.jpg","haze-112.jpg","haze-115.jpg","haze-119.jpg","haze-120.jpg","haze-121.jpg","haze-122.jpg","haze-124.jpg","haze-126.jpg","haze-128.jpg","haze-129.jpg","haze-130.jpg","haze-132.jpg","haze-134.jpg","haze-135.jpg","haze-136.jpg","haze-139.jpg","haze-141.jpg","haze-142.jpg","haze-145.jpg","haze-148.jpg","haze-149.jpg","haze-150.jpg"],
+            'sand_storm': ["sand_storm-001.jpg","sand_storm-002.jpg","sand_storm-004.jpg","sand_storm-006.jpg","sand_storm-008.jpg","sand_storm-009.jpg","sand_storm-010.jpg","sand_storm-012.jpg","sand_storm-014.jpg","sand_storm-016.jpg","sand_storm-019.jpg","sand_storm-020.jpg","sand_storm-021.jpg","sand_storm-024.jpg","sand_storm-027.jpg","sand_storm-029.jpg","sand_storm-030.jpg","sand_storm-031.jpg","sand_storm-032.jpg","sand_storm-034.jpg","sand_storm-036.jpg","sand_storm-039.jpg","sand_storm-040.jpg","sand_storm-042.jpg","sand_storm-043.jpg","sand_storm-044.jpg","sand_storm-046.jpg","sand_storm-048.jpg","sand_storm-051.jpg","sand_storm-055.jpg","sand_storm-057.jpg","sand_storm-058.jpg","sand_storm-060.jpg","sand_storm-062.jpg","sand_storm-065.jpg","sand_storm-067.jpg","sand_storm-068.jpg","sand_storm-070.jpg","sand_storm-073.jpg","sand_storm-075.jpg","sand_storm-076.jpg","sand_storm-077.jpg","sand_storm-079.jpg","sand_storm-082.jpg","sand_storm-084.jpg","sand_storm-086.jpg","sand_storm-087.jpg","sand_storm-089.jpg","sand_storm-094.jpg","sand_storm-096.jpg","sand_storm-100.jpg","sand_storm-103.jpg","sand_storm-104.jpg","sand_storm-107.jpg","sand_storm-108.jpg","sand_storm-111.jpg","sand_storm-114.jpg","sand_storm-115.jpg","sand_storm-116.jpg","sand_storm-119.jpg","sand_storm-122.jpg","sand_storm-123.jpg","sand_storm-127.jpg","sand_storm-129.jpg","sand_storm-130.jpg","sand_storm-133.jpg","sand_storm-138.jpg","sand_storm-139.jpg","sand_storm-140.jpg","sand_storm-145.jpg","sand_storm-146.jpg","sand_storm-148.jpg","sand_storm-150.jpg","sand_storm-151.jpg","sand_storm-152.jpg","sand_storm-154.jpg","sand_storm-155.jpg","sand_storm-157.jpg","sand_storm-159.jpg","sand_storm-161.jpg","sand_storm-163.jpg","sand_storm-164.jpg","sand_storm-165.jpg","sand_storm-166.jpg","sand_storm-167.jpg","sand_storm-168.jpg","sand_storm-170.jpg","sand_storm-172.jpg","sand_storm-175.jpg","sand_storm-177.jpg","sand_storm-178.jpg","sand_storm-180.jpg","sand_storm-182.jpg","sand_storm-184.jpg","sand_storm-187.jpg","sand_storm-190.jpg","sand_storm-192.jpg","sand_storm-194.jpg","sand_storm-197.jpg","sand_storm-199.jpg","sand_storm-204.jpg","sand_storm-206.jpg","sand_storm-209.jpg","sand_storm-210.jpg","sand_storm-211.jpg","sand_storm-212.jpg","sand_storm-213.jpg","sand_storm-214.jpg","sand_storm-216.jpg","sand_storm-218.jpg","sand_storm-219.jpg","sand_storm-221.jpg","sand_storm-223.jpg","sand_storm-225.jpg","sand_storm-226.jpg","sand_storm-228.jpg","sand_storm-229.jpg","sand_storm-232.jpg","sand_storm-234.jpg","sand_storm-236.jpg","sand_storm-237.jpg","sand_storm-238.jpg","sand_storm-239.jpg","sand_storm-241.jpg","sand_storm-242.jpg","sand_storm-244.jpg","sand_storm-245.jpg","sand_storm-246.jpg","sand_storm-247.jpg","sand_storm-248.jpg","sand_storm-249.jpg","sand_storm-251.jpg","sand_storm-252.jpg","sand_storm-253.jpg","sand_storm-256.jpg","sand_storm-257.jpg","sand_storm-260.jpg","sand_storm-262.jpg","sand_storm-263.jpg","sand_storm-264.jpg","sand_storm-266.jpg","sand_storm-267.jpg","sand_storm-269.jpg","sand_storm-271.jpg","sand_storm-273.jpg","sand_storm-274.jpg","sand_storm-276.jpg","sand_storm-278.jpg","sand_storm-279.jpg","sand_storm-281.jpg","sand_storm-283.jpg","sand_storm-284.jpg","sand_storm-285.jpg","sand_storm-286.jpg","sand_storm-288.jpg","sand_storm-292.jpg","sand_storm-294.jpg","sand_storm-295.jpg","sand_storm-296.jpg","sand_storm-297.jpg","sand_storm-298.jpg","sand_storm-300.jpg","sand_storm-304.jpg","sand_storm-306.jpg","sand_storm-307.jpg","sand_storm-308.jpg","sand_storm-312.jpg","sand_storm-315.jpg","sand_storm-317.jpg","sand_storm-318.jpg","sand_storm-319.jpg","sand_storm-320.jpg","sand_storm-322.jpg","sand_storm-324.jpg","sand_storm-326.jpg","sand_storm-328.jpg","sand_storm-329.jpg","sand_storm-331.jpg","sand_storm-332.jpg","sand_storm-334.jpg","sand_storm-335.jpg","sand_storm-337.jpg","sand_storm-339.jpg","sand_storm-341.jpg","sand_storm-343.jpg","sand_storm-345.jpg","sand_storm-346.jpg","sand_storm-348.jpg","sand_storm-349.jpg","sand_storm-351.jpg","sand_storm-353.jpg","sand_storm-355.jpg","sand_storm-357.jpg","sand_storm-358.jpg","sand_storm-359.jpg","sand_storm-361.jpg","sand_storm-363.jpg","sand_storm-365.jpg","sand_storm-367.jpg","sand_storm-368.jpg","sand_storm-370.jpg","sand_storm-373.jpg","sand_storm-379.jpg","sand_storm-381.jpg","sand_storm-382.jpg","sand_storm-384.jpg","sand_storm-386.jpg","sand_storm-388.jpg","sand_storm-390.jpg","sand_storm-391.jpg","sand_storm-757.jpg","sand_storm-802.jpg","sand_storm-835.jpg","sand_storm-901.jpg","sand_storm-902.jpg","sand_storm-910.jpg","sand_storm-911.jpg","sand_storm-913.jpg","sand_storm-923.jpg","sand_storm-924.jpg","sand_storm-928.jpg","sand_storm-932.jpg","sand_storm-935.jpg","sand_storm-936.jpg","sand_storm-940.jpg","sand_storm-943.jpg","sand_storm-953.jpg","sand_storm-961.jpg","sand_storm-978.jpg","sand_storm-989.jpg","sand_storm-991.jpg","sand_storm-999.jpg"]
+        };
+
+        function renderDetailMonitors(monitors, weather) {
+            const container = $('#detailMonitors');
+            if (!monitors || monitors.length === 0) {
+                container.html('<p class="text-muted">暂无监控点数据</p>');
+                return;
+            }
+
+            // 天气到图片前缀的映射
+            const weatherImageMap = {
+                '晴': 'dusttornado',
+                '多云': 'mist',
+                '小雨': 'rain_storm',
+                '大雨': 'rain_storm',
+                '暴雪': 'snow_storm',
+                '雾霾': 'haze',
+                '沙尘暴': 'sand_storm'
+            };
+            
+            const imagePrefix = weatherImageMap[weather] || 'dusttornado';
+            
+            // 获取该天气类型的所有可用图片
+            const availableImages = imageCatalog[imagePrefix] || imageCatalog['dusttornado'];
+
+            // 随机选择4个监控点
+            const selectedMonitors = monitors.slice(0, 4);
+            
+            // 从实际存在的图片中随机选择（不重复）
+            const usedIndexes = new Set();
+            const getRandomImage = () => {
+                let idx;
+                do {
+                    idx = Math.floor(Math.random() * availableImages.length);
+                } while (usedIndexes.has(idx));
+                usedIndexes.add(idx);
+                return availableImages[idx];
+            };
+            
+            const html = selectedMonitors.map((m, idx) => {
+                const statusClass = m.status === '拥堵' ? 'status-congested' : (m.status === '缓行' ? 'status-slow' : 'status-good');
+                // 从实际存在的图片列表中随机选择
+                const imgFileName = getRandomImage();
+                const imgPath = `/static/data/images/${imgFileName}`;
+                
+                return `<div class="monitor-item">
+                    <img src="${imgPath}" alt="${m.name}" loading="lazy" 
+                         onerror="this.src='/static/data/images/dusttornado-001.jpg'">
+                    <div class="monitor-status ${statusClass}">${m.status || '良好'}</div>
+                    <div class="mt-2 text-truncate" style="font-size:13px;" title="${m.name}">${m.name}</div>
+                </div>`;
+            }).join('');
+            
+            container.html(html);
+        }
+
+        function generateMockMonitors(city) {
+            const areas = ['东区', '西区', '南区', '北区', '中心区', '开发区', '高新区', '工业区'];
+            return areas.map((area, idx) => ({
+                name: `${city}${area}监控点${idx + 1}`,
+                status: idx % 3 === 0 ? '拥堵' : (idx % 3 === 1 ? '缓行' : '良好')
+            }));
+        }
+
+        $(document).ready(function() {
+            // 绑定所有事件
+            $('#statRange, #cityFilter').on('change', function(){
+                loadHistory();
+            });
+            
+            $('#searchInput').on('input', renderHistory);
+            
+            $('#pageSize').on('change', function(){
+                pageSize = parseInt($(this).val());
+                currentPage = 1;
+                renderTable();
+                renderPagination();
+            });
+            
+            $('#refreshBtn').on('click', function(e){
+                e.preventDefault();
+                console.log('重新获取按钮被点击');
+                loadHistory();
+            });
+            
+            $('#exportBtn').on('click', function(e){
+                e.preventDefault();
+                const csvRows = ['id,city,date,slot,flow,speed,congestion'];
+                historyData.forEach(item=> csvRows.push(`${item.id},${item.city},${item.date},${item.slot},${item.flow},${item.speed},${item.congestion}`));
+                const blob = new Blob([csvRows.join('\n')], { type:'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url; link.download = 'history.csv'; link.click();
+                URL.revokeObjectURL(url);
+            });
+        });
+
+        (async function(){
+            initTheme();
+            const ok = await ensureLoggedIn();
+            if (ok){
+                // 加载用户头像
+                loadUserAvatar();
+                
+                // 处理返回链接
+                const urlParams = new URLSearchParams(window.location.search);
+                const fromPage = urlParams.get('from');
+                const fromCity = urlParams.get('city');
+                
+                const backLink = document.getElementById('backLink');
+                if (fromPage === 'city-result' && fromCity) {
+                    // 如果是从 city-result 页面来的，返回到对应的城市结果页
+                    backLink.href = `/city-result/${encodeURIComponent(fromCity)}`;
+                    backLink.innerHTML = '<i class="fas fa-arrow-left"></i>返回结果页';
+                    backLink.className = 'btn btn-sm nav-btn nav-btn-outline nav-btn-back';
+                } else if (fromPage === 'input') {
+                    // 如果是从 input 页面来的，返回到 input 页面
+                    backLink.href = '/input';
+                    backLink.innerHTML = '<i class="fas fa-arrow-left"></i>返回输入';
+                    backLink.className = 'btn btn-sm nav-btn nav-btn-outline nav-btn-back';
+                } else if (fromPage === 'profile' || fromPage === 'model-config') {
+                    // 如果是从个人中心或模型配置来的
+                    backLink.href = '/input';
+                    backLink.innerHTML = '<i class="fas fa-arrow-left"></i>返回输入';
+                    backLink.className = 'btn btn-sm nav-btn nav-btn-outline nav-btn-back';
+                } else {
+                    // 默认返回到 input 页面
+                    backLink.href = '/input';
+                    backLink.innerHTML = '<i class="fas fa-arrow-left"></i>返回输入';
+                    backLink.className = 'btn btn-sm nav-btn nav-btn-outline nav-btn-back';
+                }
+                
+                loadHistory();
+            }
+        })();
+    </script>
+
+    <!-- 消息中心模态框 -->
+    <div class="modal fade" id="messageCenterModal" tabindex="-1" aria-labelledby="messageCenterModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content" style="background: #0f172a; color: #e2e8f0; border: 1px solid rgba(255,255,255,0.1);">
+                <div class="modal-header" style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+                    <h5 class="modal-title" id="messageCenterModalLabel">
+                        <i class="fas fa-bell me-2"></i>消息中心
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- 标签页 -->
+                    <ul class="nav nav-tabs mb-3" id="messageTab" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="announcement-tab" data-bs-toggle="tab" data-bs-target="#announcement" type="button" role="tab" aria-controls="announcement" aria-selected="true">
+                                <i class="fas fa-bullhorn me-2"></i>系统公告
+                                <span class="badge bg-danger ms-1" id="announcementBadge" style="display: none;">0</span>
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="notification-tab" data-bs-toggle="tab" data-bs-target="#notification" type="button" role="tab" aria-controls="notification" aria-selected="false">
+                                <i class="fas fa-envelope me-2"></i>用户通知
+                                <span class="badge bg-danger ms-1" id="notificationBadge" style="display: none;">0</span>
+                            </button>
+                        </li>
+                    </ul>
+                    
+                    <div class="tab-content" id="messageTabContent">
+                        <!-- 系统公告 -->
+                        <div class="tab-pane fade show active" id="announcement" role="tabpanel" aria-labelledby="announcement-tab">
+                            <div id="announcementList" class="accordion">
+                                <div class="text-center py-4">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">加载中...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 用户通知 -->
+                        <div class="tab-pane fade" id="notification" role="tabpanel" aria-labelledby="notification-tab">
+                            <div id="notificationList" class="accordion">
+                                <div class="text-center py-4">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">加载中...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        /* 消息中心样式 */
+        .nav-tabs .nav-link {
+            color: #94a3b8;
+            border: none;
+            border-bottom: 2px solid transparent;
+            background: none;
+        }
+        
+        .nav-tabs .nav-link:hover {
+            color: #e2e8f0;
+            border-color: rgba(255,255,255,0.2);
+        }
+        
+        .nav-tabs .nav-link.active {
+            color: #60a5fa;
+            background: none;
+            border-bottom: 2px solid #60a5fa;
+        }
+        
+        .message-item {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+        
+        .message-item:hover {
+            background: rgba(255,255,255,0.08);
+            border-color: rgba(96,165,250,0.3);
+        }
+        
+        .message-header {
+            padding: 15px 20px;
+            transition: background 0.2s ease;
+        }
+        
+        .message-header:hover {
+            background: rgba(255,255,255,0.03);
+        }
+        
+        .message-body {
+            padding: 0 20px 15px 20px;
+        }
+        
+        .message-item.unread {
+            background: rgba(59,130,246,0.1);
+            border-left: 3px solid #3b82f6;
+        }
+        
+        .message-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #e2e8f0;
+            margin-bottom: 10px;
+        }
+        
+        .message-content {
+            color: #cbd5e1;
+            line-height: 1.8;
+            white-space: pre-wrap;
+        }
+        
+        .message-time {
+            color: #64748b;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        
+        .message-icon {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: #ef4444;
+            border-radius: 50%;
+            margin-right: 8px;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .collapse-icon {
+            transition: transform 0.3s ease;
+            display: inline-block;
+        }
+        
+        .rotate-180 {
+            transform: rotate(180deg);
+        }
+        
+        /* 亮色主题适配 */
+        body.light-theme .modal-content {
+            background: #ffffff !important;
+            color: #1e293b !important;
+        }
+        
+        body.light-theme .modal-header {
+            border-bottom-color: rgba(0,0,0,0.1) !important;
+        }
+        
+        body.light-theme .nav-tabs .nav-link {
+            color: #64748b;
+        }
+        
+        body.light-theme .nav-tabs .nav-link.active {
+            color: #3b82f6;
+            border-bottom-color: #3b82f6;
+        }
+        
+        body.light-theme .message-item {
+            background: rgba(0,0,0,0.03);
+            border-color: rgba(0,0,0,0.1);
+        }
+        
+        body.light-theme .message-item:hover {
+            background: rgba(0,0,0,0.05);
+            border-color: rgba(59,130,246,0.3);
+        }
+        
+        body.light-theme .message-item.unread {
+            background: rgba(59,130,246,0.08);
+            border-left-color: #3b82f6;
+        }
+        
+        body.light-theme .message-header:hover {
+            background: rgba(0,0,0,0.02);
+        }
+        
+        body.light-theme .message-title {
+            color: #1e293b;
+        }
+        
+        body.light-theme .message-content {
+            color: #475569;
+        }
+        
+        body.light-theme .message-time {
+            color: #64748b;
+        }
+        
+        body.light-theme .collapse-icon {
+            color: #64748b !important;
+        }
+        
+        body.light-theme .text-muted {
+            color: #94a3b8 !important;
+        }
+    </style>
+
+    <script>
+        // 消息中心功能
+        let messageCenterModal;
+        let allAnnouncements = [];
+        let allNotifications = [];
+        
+        // 获取已读公告ID列表
+        function getReadAnnouncementIds() {
+            const stored = localStorage.getItem('readAnnouncementIds');
+            return stored ? JSON.parse(stored) : [];
+        }
+        
+        // 检查通知是否已触发过礼花
+        function hasShownConfetti(notificationId) {
+            const shown = localStorage.getItem('confettiShown_' + notificationId);
+            return shown === 'true';
+        }
+        
+        // 标记通知已触发礼花
+        function markConfettiShown(notificationId) {
+            localStorage.setItem('confettiShown_' + notificationId, 'true');
+        }
+        
+        // 触发礼花动画
+        function showConfetti() {
+            const duration = 6 * 1000; // 6秒
+            const animationEnd = Date.now() + duration;
+            const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 9999 };
+            
+            function randomInRange(min, max) {
+                return Math.random() * (max - min) + min;
+            }
+            
+            const interval = setInterval(function() {
+                const timeLeft = animationEnd - Date.now();
+                
+                if (timeLeft <= 0) {
+                    return clearInterval(interval);
+                }
+                
+                const particleCount = 50 * (timeLeft / duration);
+                
+                // 从左侧发射
+                confetti(Object.assign({}, defaults, {
+                    particleCount,
+                    origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 }
+                }));
+                
+                // 从右侧发射
+                confetti(Object.assign({}, defaults, {
+                    particleCount,
+                    origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 }
+                }));
+            }, 250);
+        }
+        
+        // 标记公告为已读
+        function markAnnouncementAsRead(announcementId) {
+            const readIds = getReadAnnouncementIds();
+            if (!readIds.includes(announcementId)) {
+                readIds.push(announcementId);
+                localStorage.setItem('readAnnouncementIds', JSON.stringify(readIds));
+                updateUnreadBadges();
+            }
+        }
+        
+        // 标记通知为已读（调用API）
+        async function markNotificationAsRead(notificationId) {
+            const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+            if (!token) {
+                console.error('未找到token');
+                return Promise.reject('未找到token');
+            }
+            
+            try {
+                const response = await $.ajax({
+                    url: `${API_BASE_URL}/message/notifications/${notificationId}/read?token=${token}`,
+                    method: 'POST'
+                });
+                console.log('标记通知已读API响应:', response);
+                
+                // 更新本地数据
+                const notification = allNotifications.find(n => n.id === notificationId);
+                if (notification) {
+                    notification.is_read = true;
+                    console.log('本地数据已更新，通知ID:', notificationId, '现在is_read=true');
+                }
+                
+                // 立即更新徽章
+                updateUnreadBadges();
+                return Promise.resolve();
+            } catch (error) {
+                console.error('标记通知已读失败:', error);
+                if (error.responseJSON) {
+                    console.error('错误详情:', error.responseJSON);
+                }
+                return Promise.reject(error);
+            }
+        }
+        
+        // 更新未读徽章
+        function updateUnreadBadges() {
+            const readAnnouncementIds = getReadAnnouncementIds();
+            const unreadAnnouncementCount = allAnnouncements.filter(a => !readAnnouncementIds.includes(a.id)).length;
+            const unreadNotificationCount = allNotifications.filter(n => !n.is_read).length;
+            const totalUnread = unreadAnnouncementCount + unreadNotificationCount;
+            
+            // 更新菜单中的徽章
+            if (totalUnread > 0) {
+                $('#unreadBadge').text(totalUnread).show();
+            } else {
+                $('#unreadBadge').hide();
+            }
+            
+            // 更新系统公告标签的徽章
+            if (unreadAnnouncementCount > 0) {
+                $('#announcementBadge').text(unreadAnnouncementCount).show();
+            } else {
+                $('#announcementBadge').hide();
+            }
+            
+            // 更新用户通知标签的徽章
+            if (unreadNotificationCount > 0) {
+                $('#notificationBadge').text(unreadNotificationCount).show();
+            } else {
+                $('#notificationBadge').hide();
+            }
+        }
+        
+        $(document).ready(function() {
+            // 初始化模态框
+            messageCenterModal = new bootstrap.Modal(document.getElementById('messageCenterModal'));
+            
+            // 打开消息中心
+            $('#messageCenterBtn').on('click', function(e) {
+                e.preventDefault();
+                loadMessageCenter();
+                messageCenterModal.show();
+            });
+            
+            // 加载未读消息数量
+            loadUnreadCount();
+        });
+        
+        // 加载未读消息数量（简化版，仅在页面加载时调用一次获取数据并计算）
+        async function loadUnreadCount() {
+            const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+            if (!token) return;
+            
+            try {
+                const response = await $.ajax({
+                    url: `${API_BASE_URL}/message/center`,
+                    data: { token: token }
+                });
+                
+                // 保存数据
+                allAnnouncements = response.announcements || [];
+                allNotifications = response.notifications || [];
+                
+                // 更新徽章
+                updateUnreadBadges();
+            } catch (error) {
+                console.error('加载未读消息数量失败:', error);
+            }
+        }
+        
+        // 加载消息中心数据
+        async function loadMessageCenter() {
+            const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+            if (!token) {
+                alert('请先登录');
+                return;
+            }
+            
+            try {
+                const response = await $.ajax({
+                    url: `${API_BASE_URL}/message/center`,
+                    data: { token: token }
+                });
+                
+                // 保存数据到全局变量
+                allAnnouncements = response.announcements || [];
+                allNotifications = response.notifications || [];
+                
+                // 渲染系统公告
+                renderAnnouncements(allAnnouncements);
+                
+                // 渲染用户通知
+                renderNotifications(allNotifications);
+                
+                // 更新未读徽章
+                updateUnreadBadges();
+            } catch (error) {
+                console.error('加载消息中心失败:', error);
+                let errorMsg = '加载失败';
+                if (error.responseJSON && error.responseJSON.detail) {
+                    errorMsg = error.responseJSON.detail;
+                } else if (error.statusText) {
+                    errorMsg = error.statusText;
+                }
+                $('#announcementList').html('<div class="text-center py-4 text-danger">' + errorMsg + '<br><small>请检查：1.后端API是否重启 2.数据库是否有数据 3.Token是否有效</small></div>');
+                $('#notificationList').html('<div class="text-center py-4 text-danger">' + errorMsg + '</div>');
+            }
+        }
+        
+        // 渲染系统公告
+        function renderAnnouncements(announcements) {
+            const container = $('#announcementList');
+            
+            if (!announcements || announcements.length === 0) {
+                container.html('<div class="text-center py-4 text-muted">暂无公告</div>');
+                return;
+            }
+            
+            const readIds = getReadAnnouncementIds();
+            let html = '';
+            announcements.forEach((item, index) => {
+                const collapseId = `announcement-${item.id}`;
+                const isUnread = !readIds.includes(item.id);
+                const unreadIcon = isUnread ? '<span class="message-icon"></span>' : '';
+                const unreadClass = isUnread ? 'unread' : '';
+                
+                html += `
+                    <div class="message-item message-card ${unreadClass}" data-announcement-id="${item.id}">
+                        <div class="message-header" data-bs-toggle="collapse" data-bs-target="#${collapseId}" data-bs-parent="#announcementList" style="cursor: pointer;">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="message-title mb-0">
+                                    ${unreadIcon}<i class="fas fa-bullhorn me-2" style="color: #60a5fa;"></i>${item.title}
+                                    <i class="fas fa-chevron-down ms-2 collapse-icon" style="font-size: 12px; color: #94a3b8;"></i>
+                                </div>
+                                <div class="message-time mb-0" style="font-size: 13px;">
+                                    <i class="far fa-clock me-1"></i>${item.publish_time}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="collapse message-body" id="${collapseId}" data-bs-parent="#announcementList">
+                            <div class="message-content">${item.content}</div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.html(html);
+            
+            // 添加点击事件（使用事件委托）
+            container.off('click', '.message-header').on('click', '.message-header', function() {
+                const announcementId = $(this).closest('[data-announcement-id]').data('announcement-id');
+                const $messageItem = $(this).closest('.message-item');
+                $(this).find('.collapse-icon').toggleClass('rotate-180');
+                
+                const readIds = getReadAnnouncementIds();
+                if (!readIds.includes(announcementId)) {
+                    // 标记为已读
+                    markAnnouncementAsRead(announcementId);
+                    
+                    // 立即移除未读样式
+                    $messageItem.removeClass('unread').find('.message-icon').fadeOut();
+                }
+            });
+        }
+        
+        // 渲染用户通知
+        function renderNotifications(notifications) {
+            const container = $('#notificationList');
+            
+            if (!notifications || notifications.length === 0) {
+                container.html('<div class="text-center py-4 text-muted">暂无通知</div>');
+                return;
+            }
+            
+            let html = '';
+            notifications.forEach((item, index) => {
+                const unreadClass = !item.is_read ? 'unread' : '';
+                const unreadIcon = !item.is_read ? '<span class="message-icon"></span>' : '';
+                const collapseId = `notification-${item.id}`;
+                
+                html += `
+                    <div class="message-item message-card ${unreadClass}" data-notification-id="${item.id}">
+                        <div class="message-header" data-bs-toggle="collapse" data-bs-target="#${collapseId}" data-bs-parent="#notificationList" style="cursor: pointer;">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="message-title mb-0">
+                                    ${unreadIcon}<i class="fas fa-envelope me-2" style="color: #60a5fa;"></i>${item.title}
+                                    <i class="fas fa-chevron-down ms-2 collapse-icon" style="font-size: 12px; color: #94a3b8;"></i>
+                                </div>
+                                <div class="message-time mb-0" style="font-size: 13px;">
+                                    <i class="far fa-clock me-1"></i>${item.send_time}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="collapse message-body" id="${collapseId}" data-bs-parent="#notificationList">
+                            <div class="message-content">${item.content}</div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.html(html);
+            
+            // 添加点击事件（使用事件委托）
+            container.off('click', '.message-header').on('click', '.message-header', function() {
+                const notificationId = $(this).closest('[data-notification-id]').data('notification-id');
+                const $messageItem = $(this).closest('.message-item');
+                $(this).find('.collapse-icon').toggleClass('rotate-180');
+                
+                // 检查是否是欢迎通知且未读且未触发过礼花
+                const notification = allNotifications.find(n => n.id === notificationId);
+                if (notification && !notification.is_read) {
+                    if (notification.title.includes('欢迎加入') && !hasShownConfetti(notificationId)) {
+                        // 触发礼花动画
+                        showConfetti();
+                        // 标记已触发
+                        markConfettiShown(notificationId);
+                    }
+                    
+                    // 标记为已读（异步）
+                    markNotificationAsRead(notificationId).then(() => {
+                        console.log('通知', notificationId, '已标记为已读');
+                    });
+                    
+                    // 立即移除未读样式
+                    $messageItem.removeClass('unread').find('.message-icon').fadeOut();
+                }
+            });
+        }
+    </script>
+</body>
+</html>
+
+

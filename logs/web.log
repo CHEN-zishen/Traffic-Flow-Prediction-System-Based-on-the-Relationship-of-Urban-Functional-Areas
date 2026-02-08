@@ -1,0 +1,5 @@
+nohup: ignoring input
+Traceback (most recent call last):
+  File "/home/devbox/project/traffic-project/app_web.py", line 6, in <module>
+    from flask import Flask, render_template, send_from_directory, redirect
+ModuleNotFoundError: No module named 'flask'
